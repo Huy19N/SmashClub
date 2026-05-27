@@ -1,8 +1,8 @@
 import { Outlet, Link } from 'react-router-dom';
 import { useTheme } from '../../../contexts/ThemeContext';
 import ThemeSwitcher from '../../../components/ui/ThemeSwitcher';
-import bgDark from '../../../assets/bg_login_dark.jpeg';
-import bgLight from '../../../assets/bg_login_white.jpeg';
+import bgDark from '../../../assets/bg_login_Dark.jpeg';
+import bgLight from '../../../assets/bg_login_White.jpeg';
 import { Flame } from 'lucide-react';
 
 export default function AuthLayout() {
