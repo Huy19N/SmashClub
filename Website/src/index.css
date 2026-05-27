@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@theme {
+  /* SmashClub Design Palette (Image 2) */
+  --color-primary: #0BE860;          /* Vibrant Green */
+  --color-primary-dark: #09c952;     /* Eased Vibrant Green */
+  --color-primary-deep: #005a2b;     /* Deep Green */
+  
+  --color-secondary: #9CF5D0;        /* Mint Green */
+  --color-tertiary: #64748B;         /* Slate Blue */
+  --color-bg-dark: #0b0f19;          /* Immersive Deep Slate */
+  --color-card-dark: #1E293B;        /* Neutral Card Background */
+  --color-border-dark: #334155;      /* Slate-700 Border */
+  
+  /* Typography Stack (Image 2) */
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-sans: "Lora", Georgia, serif;
+  --font-label: "Work Sans", system-ui, sans-serif;
+
+  /* Custom 60fps Micro-Animations */
+  --animate-shimmer: shimmer 2.5s infinite linear;
+  --animate-fade-in: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-slide-up: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-pulse-slow: pulseSlow 3s infinite ease-in-out;
+  
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes pulseSlow {
+    0%, 100% { opacity: 0.15; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(1.05); }
+  }
+}
+
+/* Custom Base Styles for Immersive UX */
+@layer base {
+  html, body {
+    background-color: var(--color-bg-dark);
+    color: #f1f5f9; /* Slate 100 */
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  
+  /* Buttons and Labels use Work Sans for geometric precision */
+  button, nav, a, .font-label {
+    font-family: var(--font-label);
+  }
+  
+  /* Elegant Dark Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg-dark);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-dark);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
+  }
+}
+
+/* Elegant Slate & Mint Glassmorphism */
+@utility glass-panel {
+  background: rgba(30, 41, 59, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+}
+
+@utility glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(30, 41, 59, 0.55);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  
+  &:hover {
+    background: rgba(30, 41, 59, 0.75);
+    border-color: rgba(11, 232, 96, 0.3);
+    box-shadow: 0 10px 30px -10px rgba(11, 232, 96, 0.15);
+    transform: translateY(-2px);
+  }
+}
+
+@utility text-gradient-primary {
+  background: linear-gradient(135deg, #0BE860 0%, #9CF5D0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@utility text-gradient-accent {
+  background: linear-gradient(135deg, #9CF5D0 0%, #64748B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
