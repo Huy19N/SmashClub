@@ -24,6 +24,20 @@ namespace Repositories.Base
         {
             return await _context.Set<T>().ToListAsync();
         }
+        public async Task<List<T>> GetAllAtPageAsync(int pageNumber, int pageSize)
+        {
+            return await _context.Set<T>()
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetMaxPage(int pageSize)
+        {
+            int totalCount = await _context.Set<T>().CountAsync();
+            return (int)Math.Ceiling((double)totalCount / pageSize);
+        }
+
 
         public async Task<int> CreateAsync(T entity)
         {
