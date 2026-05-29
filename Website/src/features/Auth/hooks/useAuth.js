@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { loginAPI, registerAPI, logoutAPI } from '../api/auth.api.js';
+import { useState, useEffect } from 'react';
+import { loginAPI, registerAPI, logoutAPI, getUserAPI, updateUserAPI, getUserIdAPI } from '../api/auth.api.js';
 import api from '../../../config/axios.js';
 
 export const useLogout = () => {
@@ -26,6 +26,19 @@ export const useLogout = () => {
   return { logout, isLoading };
 };
 
+const parseJwt = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+};
+
 export const useLogin = () => {
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -37,12 +50,19 @@ export const useLogin = () => {
       const response = await loginAPI({ email, password });
       const userData = response?.data ?? response;
 
-      localStorage.setItem('userId', userData.userId);
-      localStorage.setItem('roleId', userData.roleId);
-      localStorage.setItem('name', userData.userName);
-      localStorage.setItem('token', userData.accessToken);
-      localStorage.setItem('refreshToken', userData.refreshToken);
-      api.defaults.headers.common['Authorization'] = `Bearer ${userData.accessToken}`;
+      const accessToken = userData.accessToken;
+      const decoded = parseJwt(accessToken);
+      
+      const userId = decoded?.nameid || decoded?.sub || decoded?.userId || userData.userId;
+      const roleId = decoded?.role || decoded?.roleId || userData.roleId;
+
+      if (userId) localStorage.setItem('userId', userId);
+      if (roleId) localStorage.setItem('roleId', roleId);
+      localStorage.setItem('token', accessToken);
+      if (userData.refreshToken) {
+        localStorage.setItem('refreshToken', userData.refreshToken);
+      }
+      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
       return response;
     } catch (error) {
@@ -116,3 +136,84 @@ export default function useAuth() {
     error: loginError || registerError || null,
   };
 }
+
+export const useGetUser = () => {
+  const [user, setUser] = useState(null);
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await getUserAPI();
+        setUser(response);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  return {
+    user,
+    isLoading,
+    error,
+  };
+};
+
+export const useUpdateUser = () => {
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const updateUser = async (userData) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await updateUserAPI(userData);
+      return response;
+    } catch (error) {
+      setError(error.message);
+      throw error.message;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    isLoading,
+    error,
+    updateUser,
+  };
+};
+
+export const useGetUserId = () => {
+  const [user, setUser] = useState(null);
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await getUserIdAPI(localStorage.getItem('userId'));
+        setUser(response);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  return {
+    user,
+    isLoading,
+    error,
+  };
+};

@@ -40,7 +40,7 @@ export default function CreateGroupModal({ onClose, onCreated, isDarkMode = fals
             maxUses: MAX_MEMBERS,
             expiresInDays: 7
           });
-          
+
           const token = inviteData?.inviteToken;
           if (token) {
             setInviteLink(`${window.location.origin}/groups/invite/${token}`);
@@ -191,11 +191,10 @@ export default function CreateGroupModal({ onClose, onCreated, isDarkMode = fals
                     />
                     <button
                       onClick={handleCopy}
-                      className={`shrink-0 px-3 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 font-label cursor-pointer ${
-                        copied
-                          ? 'bg-primary/20 text-primary border border-primary/30'
-                          : 'bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-border-dark hover:border-primary/30 hover:text-primary dark:hover:text-white'
-                      }`}
+                      className={`shrink-0 px-3 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 font-label cursor-pointer ${copied
+                        ? 'bg-primary/20 text-primary border border-primary/30'
+                        : 'bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-border-dark hover:border-primary/30 hover:text-primary dark:hover:text-white'
+                        }`}
                     >
                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     </button>

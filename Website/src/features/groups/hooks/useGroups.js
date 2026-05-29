@@ -9,6 +9,8 @@ import {
   getTeamSchedulesAPI,
   updateTeamAPI,
   deleteTeamAPI,
+  getTeamMembersAPI,
+  removeTeamMemberAPI,
 } from '../api/groups.api.js';
 
 /**
@@ -261,4 +263,58 @@ export const useTeamSchedules = (teamId) => {
   }, [fetchSchedules]);
 
   return { schedules, isLoading, error, refetch: fetchSchedules };
+};
+
+// ─── useTeamMembers ───────────────────────────────────────────
+
+export const useTeamMembers = (teamId) => {
+  const [members, setMembers] = useState([]);
+  const [isLoading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchMembers = useCallback(async () => {
+    if (!teamId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getTeamMembersAPI(teamId);
+      const data = response?.data ?? response;
+      setMembers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Không thể tải danh sách thành viên.';
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  }, [teamId]);
+
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
+
+  return { members, isLoading, error, refetch: fetchMembers };
+};
+
+// ─── useRemoveMember ──────────────────────────────────────────
+
+export const useRemoveMember = () => {
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const removeMember = async (teamId, userId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await removeTeamMemberAPI(teamId, userId);
+      return response;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Không thể xóa thành viên.';
+      setError(errorMsg);
+      throw errorMsg;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { removeMember, isLoading, error };
 };

@@ -1,0 +1,285 @@
+import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  ArrowLeft,
+  Plus,
+  Users,
+  MessageSquare,
+  Swords,
+  AlertTriangle,
+  CalendarDays,
+  DollarSign,
+  UserCircle,
+  Settings,
+  Flame,
+  Moon,
+  Sun,
+  LayoutDashboard,
+} from 'lucide-react';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { useTeamDetail, useTeamMembers, useRemoveMember, useCreateInvite } from '../hooks/useGroups';
+import MemberCard from '../components/MemberCard';
+import Sidebar from '../../../components/layout/Sidebar';
+
+/**
+ * TeamManagementPage
+ * Detailed member management view for a specific team.
+ * Includes the same left sidebar as GroupsDashboard for consistent navigation.
+ */
+export default function TeamManagementPage() {
+  const { teamId } = useParams();
+  const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
+  const isDarkMode = theme === 'dark';
+
+  const { team, isLoading: teamLoading } = useTeamDetail(teamId);
+  const { members, isLoading: membersLoading, refetch: refetchMembers } = useTeamMembers(teamId);
+  const { removeMember, isLoading: isRemoving } = useRemoveMember();
+  const { createInvite } = useCreateInvite();
+
+  const [activeTab, setActiveTab] = useState('members');
+  const [removingMember, setRemovingMember] = useState(null);
+  const [showInviteSuccess, setShowInviteSuccess] = useState(false);
+  const [inviteLink, setInviteLink] = useState('');
+
+  const handleRemoveMember = async () => {
+    if (!removingMember) return;
+    try {
+      await removeMember(teamId, removingMember.userId);
+      setRemovingMember(null);
+      refetchMembers();
+    } catch (err) {
+      console.error('Remove failed:', err);
+    }
+  };
+
+  const handleAddMember = async () => {
+    try {
+      const data = await createInvite(teamId, { maxUses: 20, expirationHours: 168 });
+      const token = data?.inviteToken;
+      if (token) {
+        const link = `${window.location.origin}/groups/invite/${token}`;
+        setInviteLink(link);
+        setShowInviteSuccess(true);
+        try { await navigator.clipboard.writeText(link); } catch { /* ignore */ }
+      }
+    } catch (err) {
+      console.error('Create invite failed:', err);
+    }
+  };
+
+  const contentTabs = [
+    { id: 'members', label: 'Tất cả thành viên' },
+    { id: 'chat', label: 'Trò chuyện' },
+    { id: 'matchmaking', label: 'Bắt kèo' },
+  ];
+
+  // Loading
+  if ((teamLoading || membersLoading) && members.length === 0) {
+    return (
+      <div className={`flex items-center justify-center min-h-screen bg-gray-50 dark:bg-[#0b0f19] ${isDarkMode ? 'dark' : ''}`}>
+        <div className="text-center space-y-4">
+          <div className="h-12 w-12 rounded-full border-2 border-gray-200 dark:border-border-dark border-t-emerald-500 dark:border-t-primary animate-spin mx-auto" />
+          <p className="text-gray-500 dark:text-gray-400 font-label">Đang tải thông tin nhóm...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={isDarkMode ? 'dark' : ''}>
+      <div className="flex min-h-screen bg-gray-50 dark:bg-[#0b0f19] text-gray-900 dark:text-gray-100 transition-colors duration-300 font-sans">
+
+        {/* ── Left Sidebar ── */}
+        <Sidebar onCreateGroup={() => navigate('/groups')} activeMenu="teams" />
+
+        {/* ── Right Content Area ── */}
+        <main className="flex-1 overflow-y-auto h-screen p-6 lg:p-10 flex flex-col justify-between">
+          <div className="space-y-8">
+
+            {/* Back Link to Groups list */}
+            <button
+              onClick={() => navigate('/groups')}
+              className="inline-flex items-center gap-2 text-sm font-bold text-emerald-700 dark:text-primary hover:text-emerald-800 dark:hover:text-primary-dark transition-colors font-label cursor-pointer group/back"
+            >
+              <ArrowLeft className="h-4 w-4 group-hover/back:-translate-x-0.5 transition-transform" />
+              Quay về trang tổng các nhóm
+            </button>
+
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-200/60 dark:border-border-dark/40 pb-6">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-display">
+                  Quản lý Thành viên
+                </h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-label">
+                  Quản lý danh sách và trình độ của các thành viên trong {team?.teamName || 'câu lạc bộ'}.
+                </p>
+              </div>
+
+              <button
+                onClick={handleAddMember}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 dark:bg-primary dark:hover:bg-primary-dark text-white dark:text-[#052e14] transition-all duration-200 shadow-md shadow-emerald-500/10 dark:shadow-primary/10 hover:-translate-y-0.5 font-label cursor-pointer shrink-0"
+              >
+                <Plus className="h-4 w-4" />
+                Thêm thành viên
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200 dark:border-border-dark/60">
+              {contentTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-5 py-3 text-sm font-bold transition-all border-b-2 font-label cursor-pointer ${activeTab === tab.id
+                    ? 'text-emerald-700 border-emerald-600 dark:text-primary dark:border-primary'
+                    : 'text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-white'
+                    }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'members' && (
+              <>
+                {members.length === 0 ? (
+                  <div className="text-center py-20 bg-white dark:bg-card-dark/10 rounded-2xl border border-gray-200/80 dark:border-border-dark/60 p-8 space-y-4 max-w-lg mx-auto">
+                    <Users className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto" />
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white font-display">Chưa có thành viên nào</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 font-label">
+                        Hãy mời bạn bè tham gia nhóm của bạn.
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleAddMember}
+                      className="mt-4 px-5 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-primary dark:hover:bg-primary-dark dark:text-[#052e14] transition-all font-label cursor-pointer inline-flex items-center gap-2"
+                    >
+                      <Plus className="h-4 w-4" /> Thêm thành viên
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {members.map((m) => (
+                      <MemberCard
+                        key={m.userId}
+                        member={m}
+                        onRemove={(member) => setRemovingMember(member)}
+                        onViewProfile={(member) => console.log('View profile', member.userId)}
+                      />
+                    ))}
+
+                    {/* Add Member Card */}
+                    <button
+                      onClick={handleAddMember}
+                      className="rounded-2xl border-2 border-dashed border-gray-200 dark:border-border-dark/60 bg-white/50 dark:bg-card-dark/10 hover:border-emerald-500/40 dark:hover:border-primary/30 hover:bg-emerald-50/30 dark:hover:bg-primary/5 transition-all duration-300 flex flex-col items-center justify-center min-h-[220px] cursor-pointer group/add"
+                    >
+                      <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center group-hover/add:bg-emerald-100 dark:group-hover/add:bg-primary/10 transition-colors">
+                        <Plus className="h-5 w-5 text-gray-400 group-hover/add:text-emerald-600 dark:group-hover/add:text-primary transition-colors" />
+                      </div>
+                      <span className="mt-3 text-sm font-semibold text-gray-400 group-hover/add:text-emerald-600 dark:group-hover/add:text-primary transition-colors font-label">
+                        Thêm thành viên mới
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {activeTab === 'chat' && (
+              <div className="text-center py-20 bg-white dark:bg-card-dark/10 rounded-2xl border border-gray-200/80 dark:border-border-dark/60 p-8 space-y-4 max-w-lg mx-auto">
+                <MessageSquare className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto" />
+                <h3 className="text-base font-bold text-gray-900 dark:text-white font-display">Tính năng đang phát triển</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-label">
+                  Trò chuyện nhóm sẽ sớm được ra mắt.
+                </p>
+              </div>
+            )}
+
+            {activeTab === 'matchmaking' && (
+              <div className="text-center py-20 bg-white dark:bg-card-dark/10 rounded-2xl border border-gray-200/80 dark:border-border-dark/60 p-8 space-y-4 max-w-lg mx-auto">
+                <Swords className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto" />
+                <h3 className="text-base font-bold text-gray-900 dark:text-white font-display">Tính năng đang phát triển</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-label">
+                  Bắt kèo sẽ sớm được ra mắt.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="mt-12 pt-6 border-t border-gray-200/60 dark:border-border-dark/40 flex items-center justify-between text-xs text-gray-400 dark:text-gray-500 font-label">
+            <span>© {new Date().getFullYear()} SmashClub. All rights reserved.</span>
+            <div className="flex gap-4">
+              <span className="hover:text-emerald-600 dark:hover:text-primary cursor-pointer transition-colors">Privacy</span>
+              <span className="hover:text-emerald-600 dark:hover:text-primary cursor-pointer transition-colors">Terms</span>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      {/* Remove Member Confirmation */}
+      {removingMember && (
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isDarkMode ? 'dark' : ''}`}>
+          <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm" onClick={() => setRemovingMember(null)} />
+          <div className="relative w-full max-w-sm animate-fade-in bg-white dark:bg-[#0d1117] rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-border-dark p-6 text-center space-y-4">
+            <div className="mx-auto w-12 h-12 bg-red-100 dark:bg-red-500/10 rounded-full flex items-center justify-center mb-2">
+              <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-500" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white font-display">Xóa Thành Viên?</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-label">
+              Bạn có chắc chắn muốn xóa <strong>{removingMember.fullName}</strong> khỏi nhóm? Hành động này không thể hoàn tác.
+            </p>
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={() => setRemovingMember(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-white/5 dark:hover:bg-white/10 dark:text-gray-300 transition-colors font-label cursor-pointer"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                onClick={handleRemoveMember}
+                disabled={isRemoving}
+                className="flex-1 px-4 py-2.5 rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white dark:bg-red-500 dark:hover:bg-red-600 transition-colors font-label cursor-pointer flex items-center justify-center"
+              >
+                {isRemoving ? (
+                  <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                ) : (
+                  'Xóa'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invite Link Success */}
+      {showInviteSuccess && (
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isDarkMode ? 'dark' : ''}`}>
+          <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm" onClick={() => setShowInviteSuccess(false)} />
+          <div className="relative w-full max-w-sm animate-fade-in bg-white dark:bg-[#0d1117] rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-border-dark p-6 text-center space-y-4">
+            <div className="mx-auto w-12 h-12 bg-emerald-100 dark:bg-primary/10 rounded-full flex items-center justify-center mb-2">
+              <Users className="h-6 w-6 text-emerald-600 dark:text-primary" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white font-display">Link mời đã được tạo!</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-label">
+              Link đã được copy vào clipboard. Gửi cho bạn bè để mời tham gia nhóm.
+            </p>
+            <div className="bg-gray-50 dark:bg-white/5 rounded-lg p-3 border border-gray-200 dark:border-border-dark">
+              <p className="text-xs text-gray-600 dark:text-gray-300 font-mono break-all">{inviteLink}</p>
+            </div>
+            <button
+              onClick={() => setShowInviteSuccess(false)}
+              className="w-full px-4 py-2.5 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-primary dark:hover:bg-primary-dark dark:text-[#052e14] transition-colors font-label cursor-pointer"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

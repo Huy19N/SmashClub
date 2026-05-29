@@ -19,6 +19,7 @@ const RegisterPage = lazy(() => import('../features/Auth/pages/RegisterPage'));
 // Groups Feature (Auth-Gated)
 import ProtectedRoute from '../components/layout/ProtectedRoute';
 const GroupsDashboard = lazy(() => import('../features/groups/pages/GroupsDashboard'));
+const TeamManagementPage = lazy(() => import('../features/groups/pages/TeamManagementPage'));
 const JoinGroupPage = lazy(() => import('../features/groups/pages/JoinGroupPage'));
 
 /**
@@ -73,6 +74,10 @@ export const router = createBrowserRouter([
   {
     path: PATHS.GROUPS,
     element: <ProtectedRoute><GroupsDashboard /></ProtectedRoute>
+  },
+  {
+    path: PATHS.GROUP_MANAGE,
+    element: <ProtectedRoute><TeamManagementPage /></ProtectedRoute>
   },
   {
     path: PATHS.GROUP_INVITE,

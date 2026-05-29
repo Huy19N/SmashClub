@@ -40,7 +40,7 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Error Notification Callout */}
         {(localError || authError) && (
-          <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium animate-pulse-slow">
+          <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-sm font-medium animate-pulse">
             {localError || authError}
           </div>
         )}

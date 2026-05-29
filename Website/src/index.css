@@ -94,6 +94,12 @@
     overflow-x: hidden;
   }
 
+  html.light,
+  body.light {
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+
   /* Buttons and Labels use Work Sans for geometric precision */
   button,
   nav,
@@ -112,9 +118,17 @@
     background: var(--color-bg-dark);
   }
 
+  .light ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
   ::-webkit-scrollbar-thumb {
     background: var(--color-border-dark);
     border-radius: 9999px;
+  }
+
+  .light ::-webkit-scrollbar-thumb {
+    background: #cbd5e1; /* slate-300 */
   }
 
   ::-webkit-scrollbar-thumb:hover {

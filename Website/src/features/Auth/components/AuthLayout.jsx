@@ -1,6 +1,6 @@
 import { Outlet, Link } from 'react-router-dom';
 import { useTheme } from '../../../contexts/ThemeContext';
-import ThemeSwitcher from '../../../components/ui/ThemeSwitcher';
+import { ThemeSwitcher } from '../../../contexts/ThemeContext';
 import bgDark from '../../../assets/bg_login_Dark.png';
 import bgLight from '../../../assets/bg_login_White.png';
 import { Flame } from 'lucide-react';

@@ -16,8 +16,8 @@ api.interceptors.request.use(
         } else {
             delete config.headers.Authorization;
         }
-        console.log(`[Axios] ${config.method?.toUpperCase()} ${config.url}`,
-            'Token:', token ? `${token.substring(0, 20)}...` : 'NONE');
+        // console.log(`[Axios] ${config.method?.toUpperCase()} ${config.url}`,
+        //     'Token:', token ? `${token.substring(0, 20)}...` : 'NONE');
         return config;
     },
     (error) => Promise.reject(error)

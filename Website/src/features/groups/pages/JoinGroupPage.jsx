@@ -14,12 +14,14 @@ import {
   Sun
 } from 'lucide-react';
 import { useInviteInfo, useAcceptInvite } from '../hooks/useGroups';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 export default function JoinGroupPage() {
   const { token } = useParams();
   const navigate = useNavigate();
   const [accepted, setAccepted] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false); // Default to Light Mode
+  const { theme, toggleTheme } = useTheme();
+  const isDarkMode = theme === 'dark';
 
   const { inviteInfo, isLoading, error } = useInviteInfo(token);
   const { acceptInvite, isLoading: accepting, error: acceptError } = useAcceptInvite();
@@ -45,8 +47,6 @@ export default function JoinGroupPage() {
   const handleReject = () => {
     navigate(PATHS.HOME);
   };
-
-  const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   // ─── Loading State ──────────────────────────────────────────
   if (isLoading) {
@@ -137,7 +137,7 @@ export default function JoinGroupPage() {
               Đang chuyển hướng...
             </p>
             <div className="h-1 w-full bg-gray-100 dark:bg-border-dark rounded-full overflow-hidden mt-4">
-              <div className="h-full bg-primary rounded-full animate-[expandWidth_2s_ease-in-out_forwards]" style={{width: '100%'}} />
+              <div className="h-full bg-primary rounded-full animate-[expandWidth_2s_ease-in-out_forwards]" style={{ width: '100%' }} />
             </div>
           </div>
         </div>

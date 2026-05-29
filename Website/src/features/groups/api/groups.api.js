@@ -61,3 +61,23 @@ export const getTeamSchedulesAPI = async (teamId) => {
   const response = await api.get(`/teams/${teamId}/schedules`);
   return response.data;
 };
+
+// ─── Team Members ─────────────────────────────────────────────
+
+/** Get all members of a team (GET /api/teams/{teamId}/members) */
+export const getTeamMembersAPI = async (teamId) => {
+  const response = await api.get(`/teams/${teamId}/members`);
+  return response.data;
+};
+
+/** Update a team member (PATCH /api/teams/{teamId}/members/{userId}) */
+export const updateTeamMemberAPI = async (teamId, userId, data) => {
+  const response = await api.patch(`/teams/${teamId}/members/${userId}`, data);
+  return response.data;
+};
+
+/** Remove a member from team (DELETE /api/teams/{teamId}/members/{userId}) */
+export const removeTeamMemberAPI = async (teamId, userId) => {
+  const response = await api.delete(`/teams/${teamId}/members/${userId}`);
+  return response.data;
+};
