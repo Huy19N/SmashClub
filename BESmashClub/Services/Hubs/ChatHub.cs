@@ -1,24 +1,35 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Services.Hubs
 {
+    [Authorize]
     public class ChatHub : Hub
     {
-        public async Task ListenToTeam(Guid teamId)
+        /// <summary>
+        /// Tham gia group chat của team để nhận tin nhắn realtime.
+        /// </summary>
+        public async Task JoinTeamChat(Guid teamId)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, teamId.ToString());
+            await Clients.Caller.SendAsync("JoinedTeam", teamId);
         }
 
-        public async Task LeaveTeam(Guid teamId)
+        /// <summary>
+        /// Rời group chat của team.
+        /// </summary>
+        public async Task LeaveTeamChat(Guid teamId)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, teamId.ToString());
+            await Clients.Caller.SendAsync("LeftTeam", teamId);
         }
 
         public override async Task OnConnectedAsync()
         {
-            Console.WriteLine($"Client connected: {Context.ConnectionId}");
+            Console.WriteLine($"Client connected: {Context.ConnectionId} | User: {Context.UserIdentifier}");
             await base.OnConnectedAsync();
         }
+
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             Console.WriteLine($"Client disconnected: {Context.ConnectionId}");

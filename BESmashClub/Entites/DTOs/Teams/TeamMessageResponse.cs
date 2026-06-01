@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +15,8 @@ namespace Entites.DTOs.Teams
         public Guid SenderId { get; set; }
 
         public string Content { get; set; } = null!;
+
+        public string? SenderName { get; set; }
 
         public DateTime? SentAt { get; set; }
     }

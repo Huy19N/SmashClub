@@ -23,8 +23,7 @@ public class ScheduleService : IScheduleService
             throw new UnauthorizedAccessException("Chỉ Leader mới có quyền tạo lịch chơi.");
 
         // Validate booking exists
-        var booking = await _unitOfWork.Context.Bookings.FindAsync(request.BookingId);
-        if (booking == null)
+        if (!await _unitOfWork.Booking.IsExists(request.BookingId))
             throw new KeyNotFoundException("Không tìm thấy booking.");
 
         // Each booking can only have one schedule (yêu cầu #5)

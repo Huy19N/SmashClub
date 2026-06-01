@@ -1,21 +1,20 @@
 using System.Text;
-using APIWebApp.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Repositories;
 using Repositories.Context;
+using Services.Hubs;
 using Services.Implementations;
 using Services.Interfaces;
 using Services.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-
 // ---- Configuration ----
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
 
 // ---- Database ----
@@ -32,6 +31,8 @@ builder.Services.AddScoped<ISportService, SportService>();
 builder.Services.AddScoped<IUserSportProfileService, UserSportProfileService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // ---- Authentication ----
 builder.Services.AddAuthentication(options =>
@@ -51,6 +52,21 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings.Audience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
         ClockSkew = TimeSpan.Zero
+    };
+
+    // Allow SignalR to read JWT from query string
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -90,7 +106,8 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-// ---- Signal R -----
+
+// ---- SignalR -----
 builder.Services.AddSignalR();
 
 // ---- CORS ----
@@ -98,14 +115,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
     });
 });
-
-
 
 var app = builder.Build();
 
@@ -125,6 +140,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHub<ChatHub>("hub/chat");
+app.MapHub<ChatHub>("/hub/chat");
 
 app.Run();
