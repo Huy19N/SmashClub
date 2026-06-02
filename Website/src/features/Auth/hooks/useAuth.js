@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { loginAPI, registerAPI, logoutAPI, getUserAPI, updateUserAPI, getUserIdAPI, getUserProfileAPI, updateUserProfileAPI, createUserProfileAPI, deleteUserProfileAPI } from '../api/auth.api.js';
-import api from '../../../config/axios.js';
+import api, { setAccessToken, getAccessToken } from '../../../config/axios.js';
 
 export const useLogout = () => {
   const [isLoading, setLoading] = useState(false);
@@ -8,16 +8,12 @@ export const useLogout = () => {
   const logout = async () => {
     setLoading(true);
     try {
-      const userId = localStorage.getItem('userId');
-      const refreshToken = localStorage.getItem('refreshToken');
-      await logoutAPI({
-        userId: userId || "",
-        refreshToken: refreshToken || ""
-      });
+      await logoutAPI();
     } catch (error) {
       console.error("Logout error", error);
     } finally {
       localStorage.clear();
+      setAccessToken(null);
       delete api.defaults.headers.common['Authorization'];
       setLoading(false);
     }
@@ -58,10 +54,10 @@ export const useLogin = () => {
 
       if (userId) localStorage.setItem('userId', userId);
       if (roleId) localStorage.setItem('roleId', roleId);
-      localStorage.setItem('token', accessToken);
-      if (userData.refreshToken) {
-        localStorage.setItem('refreshToken', userData.refreshToken);
-      }
+      
+      // Save Access Token in memory instead of localStorage
+      setAccessToken(accessToken);
+      
       api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
       return response;
@@ -138,7 +134,7 @@ export default function useAuth() {
   const userId = localStorage.getItem('userId');
   const name = localStorage.getItem('name');
   const roleId = localStorage.getItem('roleId');
-  const token = localStorage.getItem('token');
+  const token = getAccessToken();
 
   const user = userId ? { userId, name, roleId, token } : null;
 
