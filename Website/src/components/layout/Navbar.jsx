@@ -108,6 +108,12 @@ export default function Navbar() {
                   if (item.path === PATHS.COLLECTIONS && isHomePage) {
                     e.preventDefault();
                     document.getElementById('collections-section')?.scrollIntoView({ behavior: 'smooth' });
+                  } else if (item.path === PATHS.PREMIUM && isHomePage) {
+                    e.preventDefault();
+                    document.getElementById('premium-section')?.scrollIntoView({ behavior: 'smooth' });
+                  } else if (item.path === PATHS.CONTACT && isHomePage) {
+                    e.preventDefault();
+                    document.getElementById('contact-section')?.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
                 className={({ isActive }) => `
@@ -207,6 +213,18 @@ export default function Navbar() {
                     setMobileMenuOpen(false);
                     setTimeout(() => {
                       document.getElementById('collections-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  } else if (item.path === PATHS.PREMIUM && isHomePage) {
+                    e.preventDefault();
+                    setMobileMenuOpen(false);
+                    setTimeout(() => {
+                      document.getElementById('premium-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  } else if (item.path === PATHS.CONTACT && isHomePage) {
+                    e.preventDefault();
+                    setMobileMenuOpen(false);
+                    setTimeout(() => {
+                      document.getElementById('contact-section')?.scrollIntoView({ behavior: 'smooth' });
                     }, 100);
                   } else {
                     setMobileMenuOpen(false);

@@ -12,6 +12,8 @@ import { PATHS } from '../../../routes/paths';
 import SEOManager from '../../../components/seo/SEOManager';
 import videoBg from '../../../assets/video_smash_club.mp4';
 import CollectionsSection from '../components/CollectionsSection';
+import PremiumSection from '../components/PremiumSection';
+import ContactSection from '../components/ContactSection';
 
 /**
  * HomePage
@@ -465,8 +467,14 @@ export default function HomePage() {
 
         </main>
 
+        {/* ---------------- PREMIUM SECTION ---------------- */}
+        <PremiumSection />
+
         {/* ---------------- COLLECTIONS SECTION ---------------- */}
         <CollectionsSection />
+
+        {/* ---------------- CONTACT SECTION ---------------- */}
+        <ContactSection />
 
         {/* ---------------- FOOTER ---------------- */}
         <footer className="relative z-10 border-t border-white/10 bg-[#0b0f19] py-12 font-label">

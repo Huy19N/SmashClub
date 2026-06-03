@@ -7,9 +7,6 @@ import MainLayout from '../components/layout/MainLayout';
 // High-performance dynamic code-splitting for feature modules
 const HomePage = lazy(() => import('../features/home/pages/HomePage'));
 const AboutPage = lazy(() => import('../features/about/pages/AboutPage'));
-const ContactPage = lazy(() => import('../features/contact/pages/ContactPage'));
-const PremiumPage = lazy(() => import('../features/premium/pages/PremiumPage'));
-const CollectionsPage = lazy(() => import('../features/collections/pages/CollectionsPage'));
 
 // Auth Features
 const AuthLayout = lazy(() => import('../features/Auth/components/AuthLayout'));
@@ -39,18 +36,6 @@ export const router = createBrowserRouter([
       {
         path: PATHS.ABOUT,
         element: <AboutPage />
-      },
-      {
-        path: PATHS.CONTACT,
-        element: <ContactPage />
-      },
-      {
-        path: PATHS.PREMIUM,
-        element: <PremiumPage />
-      },
-      {
-        path: PATHS.COLLECTIONS,
-        element: <CollectionsPage />
       },
       // Keep legacy routes resolving to their new counterparts if accessed
       {
