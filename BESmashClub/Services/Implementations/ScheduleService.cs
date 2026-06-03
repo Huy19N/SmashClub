@@ -136,6 +136,17 @@ public class ScheduleService : IScheduleService
         if (currentCount >= schedule.MaxParticipants)
             throw new InvalidOperationException("Buổi chơi đã đầy.");
 
+        // Check schedule conflict: user must not be in another schedule with overlapping booking time
+        if (schedule.Booking != null)
+        {
+            var hasConflict = await _unitOfWork.ScheduleParticipants.HasConflictAsync(
+                userId, schedule.Booking.StartTime, schedule.Booking.EndTime, scheduleId);
+
+            if (hasConflict)
+                throw new InvalidOperationException(
+                    "Lịch bị trùng với buổi chơi khác. Bạn đã tham gia một lịch chơi trong khung giờ này.");
+        }
+
         var participant = new ScheduleParticipant
         {
             ScheduleId = scheduleId,

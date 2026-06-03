@@ -33,8 +33,8 @@ public class BookingService : IBookingService
         if (!await _unitOfWork.Booking.IsTimeSlotAvailableAsync(request.CourtId, request.StartTime, request.EndTime))
             throw new InvalidOperationException("Khung giờ này đã có người đặt. Vui lòng chọn giờ khác.");
 
-        // Calculate total cost based on duration (hours) and court cost
-        var durationHours = (decimal)(request.EndTime - request.StartTime).TotalHours;
+        // Calculate total cost from CourtCosts
+        var totalCost = await CalculateTotalCostAsync(request.CourtId, request.StartTime, request.EndTime);
 
         var booking = new Booking
         {
@@ -43,7 +43,7 @@ public class BookingService : IBookingService
             BookedByUserId = userId,
             StartTime = request.StartTime,
             EndTime = request.EndTime,
-            TotalCost = 0, // Can be calculated from CourtCosts if needed
+            TotalCost = totalCost,
             StatusId = 1, // Pending
             CreatedAt = DateTime.Now
         };
@@ -105,6 +105,12 @@ public class BookingService : IBookingService
         booking.StartTime = newStart;
         booking.EndTime = newEnd;
 
+        // Recalculate total cost when time changes
+        if (request.StartTime.HasValue || request.EndTime.HasValue)
+        {
+            booking.TotalCost = await CalculateTotalCostAsync(booking.CourtId, newStart, newEnd);
+        }
+
         await _unitOfWork.Booking.UpdateAsync(booking);
 
         return await GetBookingDetailAsync(bookingId);
@@ -128,6 +134,53 @@ public class BookingService : IBookingService
 
     #region Helpers
 
+    /// <summary>
+    /// Tính tổng chi phí booking dựa trên CourtCost.
+    /// Mỗi CourtCost định nghĩa: khung giờ (StartTime-EndTime), đơn vị tính phí (DurationMinutes), giá (Cost).
+    /// Logic: tìm overlap giữa booking time và từng CourtCost, chia overlap cho DurationMinutes, nhân Cost.
+    /// Nếu không có CourtCost nào cover toàn bộ khung giờ booking → throw exception.
+    /// </summary>
+    private async Task<decimal> CalculateTotalCostAsync(int courtId, DateTime bookingStart, DateTime bookingEnd)
+    {
+        var startTime = TimeOnly.FromDateTime(bookingStart);
+        var endTime = TimeOnly.FromDateTime(bookingEnd);
+
+        var courtCosts = await _unitOfWork.CourtCosts.GetCostsForTimeRangeAsync(courtId, startTime, endTime);
+
+        if (courtCosts.Count == 0)
+            throw new InvalidOperationException("Không tìm thấy bảng giá cho khung giờ này. Vui lòng liên hệ chủ sân.");
+
+        // Check coverage: verify that the union of all CourtCost ranges covers [startTime, endTime)
+        var coveredMinutes = 0;
+        var totalBookingMinutes = (int)(bookingEnd - bookingStart).TotalMinutes;
+
+        decimal totalCost = 0;
+
+        foreach (var cc in courtCosts)
+        {
+            // Calculate overlap between booking time and this CourtCost's time range
+            var overlapStart = startTime > cc.StartTime ? startTime : cc.StartTime;
+            var overlapEnd = endTime < cc.EndTime ? endTime : cc.EndTime;
+
+            if (overlapStart >= overlapEnd)
+                continue;
+
+            var overlapMinutes = (int)(overlapEnd.ToTimeSpan() - overlapStart.ToTimeSpan()).TotalMinutes;
+            coveredMinutes += overlapMinutes;
+
+            // Cost = (overlapMinutes / DurationMinutes) * Cost
+            var units = (decimal)overlapMinutes / cc.DurationMinutes;
+            totalCost += units * cc.Cost;
+        }
+
+        if (coveredMinutes < totalBookingMinutes)
+            throw new InvalidOperationException(
+                $"Bảng giá chưa cover đủ khung giờ booking. " +
+                $"Đã cover {coveredMinutes}/{totalBookingMinutes} phút. Vui lòng liên hệ chủ sân.");
+
+        return Math.Round(totalCost, 2);
+    }
+
     private static BookingResponse MapToResponse(Booking b)
     {
         return new BookingResponse
@@ -150,3 +203,4 @@ public class BookingService : IBookingService
 
     #endregion
 }
+

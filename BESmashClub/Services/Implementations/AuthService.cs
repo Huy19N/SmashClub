@@ -128,7 +128,12 @@ public class AuthService : IAuthService
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
             new Claim(JwtRegisteredClaimNames.Jti, jwtId),
             new Claim(ClaimTypes.Name, user.FullName),
-            new Claim(ClaimTypes.Role, user.RoleId == 1 ? "Admin" : "User")
+            new Claim(ClaimTypes.Role, user.RoleId switch
+            {
+                1 => "Admin",
+                3 => "FacilityOwner",
+                _ => "User"
+            })
         };
 
         var token = new JwtSecurityToken(

@@ -19,6 +19,9 @@ public class UnitOfWork : IDisposable
     public ScheduleParticipantRepository ScheduleParticipants { get; }
     public BookingRepository Booking { get; }
     public EmailConfirmRepository EmailConfirms { get; }
+    public FacilityRepository Facilities { get; }
+    public CourtRepository Courts { get; }
+    public CourtCostRepository CourtCosts { get; }
 
     public UnitOfWork(SmashClubContext context)
     {
@@ -36,6 +39,9 @@ public class UnitOfWork : IDisposable
         ScheduleParticipants = new ScheduleParticipantRepository(context);
         Booking = new BookingRepository(context);
         EmailConfirms = new EmailConfirmRepository(context);
+        Facilities = new FacilityRepository(context);
+        Courts = new CourtRepository(context);
+        CourtCosts = new CourtCostRepository(context);
     }
 
     public async Task<int> SaveChangesAsync()

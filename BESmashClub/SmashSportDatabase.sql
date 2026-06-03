@@ -165,7 +165,7 @@ CREATE TABLE CourtCosts(
     CourtId INT NOT NULL,
     StartTime TIME NOT NULL,
     EndTime TIME NOT NULL,
-    DurationMinutes INT NOT NULL, -- Đã sửa: Chuyển từ TIME sang INT để tính phút
+    DurationMinutes INT NOT NULL DEFAULT 60, -- Đã sửa: Chuyển từ TIME sang INT để tính phút
     Cost MONEY NOT NULL,
     IsActive BIT NOT NULL DEFAULT 1,
     CONSTRAINT PK_CourtCosts PRIMARY KEY (CourtCostId, FacilityId),
@@ -294,7 +294,7 @@ USE SmashClub;
 GO
 
 -- 1. THÊM DANH MỤC CƠ BẢN
-INSERT INTO UserRoles (RoleId, RoleName) VALUES (1, N'Admin'), (2, N'User');
+INSERT INTO UserRoles (RoleId, RoleName) VALUES (1, N'Admin'), (2, N'User'), (3, N'FacilityOwner');
 INSERT INTO TeamRoles (TeamRoleId, RoleName) VALUES (1, N'Leader'), (2, N'Member');
 INSERT INTO CourtStatus (StatusId, StatusName) VALUES (1, N'Sẵn sàng'), (2, N'Bảo trì');
 
