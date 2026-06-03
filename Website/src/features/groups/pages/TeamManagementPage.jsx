@@ -22,14 +22,15 @@ import {
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useTeamDetail, useTeamMembers, useRemoveMember, useCreateInvite } from '../hooks/useGroups';
 import MemberCard from '../components/MemberCard';
+import TeamChat from '../components/TeamChat';
 import Sidebar from '../../../components/layout/Sidebar';
 import { getUserIdAPI } from '../../Auth/api/auth.api.js';
 
 const filterProfileData = (obj) => {
   if (!obj || typeof obj !== 'object') return [];
-  
+
   const result = [];
-  
+
   const cleanKey = (key) => {
     const translations = {
       fullName: 'Họ và tên',
@@ -60,14 +61,14 @@ const filterProfileData = (obj) => {
 
   const traverse = (item, parentKey = '') => {
     if (!item) return;
-    
+
     Object.entries(item).forEach(([key, val]) => {
       const lowerKey = key.toLowerCase();
       // Skip ID fields
       if (lowerKey === 'id' || lowerKey.endsWith('id') || lowerKey.includes('id_') || lowerKey.includes('_id')) {
         return;
       }
-      
+
       if (val && typeof val === 'object' && !Array.isArray(val) && !(val instanceof Date)) {
         traverse(val, key);
       } else if (Array.isArray(val)) {
@@ -97,7 +98,7 @@ const filterProfileData = (obj) => {
             displayVal = String(val);
           }
         }
-        
+
         if (val !== null && val !== undefined && val !== '') {
           result.push({
             key: cleanKey(key),
@@ -108,7 +109,7 @@ const filterProfileData = (obj) => {
       }
     });
   };
-  
+
   traverse(obj);
   return result;
 };
@@ -146,7 +147,7 @@ export default function TeamManagementPage() {
     try {
       const res = await getUserIdAPI(member.userId);
       let data = res?.data ?? res;
-      
+
       // Combine API user details with sport data from the team members API
       if (member.sportName || member.sport || member.levelName || member.level || member.wins !== undefined) {
         data = {
@@ -159,7 +160,7 @@ export default function TeamManagementPage() {
           }]
         };
       }
-      
+
       setProfileDetails(data);
     } catch (err) {
       setProfileError(err.message || 'Không thể tải thông tin hồ sơ.');
@@ -316,12 +317,8 @@ export default function TeamManagementPage() {
             )}
 
             {activeTab === 'chat' && (
-              <div className="text-center py-20 bg-white dark:bg-card-dark/10 rounded-2xl border border-gray-200/80 dark:border-border-dark/60 p-8 space-y-4 max-w-lg mx-auto">
-                <MessageSquare className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto" />
-                <h3 className="text-base font-bold text-gray-900 dark:text-white font-display">Tính năng đang phát triển</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-label">
-                  Trò chuyện nhóm sẽ sớm được ra mắt.
-                </p>
+              <div className="animate-fade-in">
+                <TeamChat teamName={team.teamName} memberCount={team.totalMembers} />
               </div>
             )}
 
@@ -412,7 +409,7 @@ export default function TeamManagementPage() {
         <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isDarkMode ? 'dark' : ''}`}>
           <div className="absolute inset-0 bg-black/55 backdrop-blur-sm transition-opacity duration-300" onClick={() => setViewingProfileMember(null)} />
           <div className="relative w-full max-w-lg bg-white dark:bg-[#0d1117] rounded-3xl shadow-2xl border border-gray-200/80 dark:border-border-dark overflow-hidden animate-scale-up max-h-[85vh] flex flex-col z-10 transition-colors duration-300">
-            
+
             {/* Modal Header */}
             <div className="relative px-6 py-5 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-primary/10 dark:to-primary/5 border-b border-gray-150 dark:border-border-dark/60 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
@@ -428,7 +425,7 @@ export default function TeamManagementPage() {
                   </p>
                 </div>
               </div>
-              
+
               <button
                 onClick={() => setViewingProfileMember(null)}
                 className="p-2 rounded-xl text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-105 dark:hover:bg-white/5 transition-all cursor-pointer"
@@ -439,7 +436,7 @@ export default function TeamManagementPage() {
 
             {/* Modal Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              
+
               {/* Profile Card Header */}
               <div className="flex items-center gap-4 bg-gray-50/50 dark:bg-white/5 p-4 rounded-2xl border border-gray-150 dark:border-white/10 shrink-0">
                 <div className="h-16 w-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 dark:from-primary dark:to-emerald-500 flex items-center justify-center text-white font-bold text-2xl shadow-md font-display select-none">
@@ -450,11 +447,10 @@ export default function TeamManagementPage() {
                     {viewingProfileMember.fullName}
                   </h4>
                   <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider font-label ${
-                      viewingProfileMember.roleName === 'Leader'
-                        ? 'bg-amber-105 text-amber-705 border-amber-205 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20'
-                        : 'bg-emerald-55 text-emerald-75 border-emerald-25 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
-                    }`}>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider font-label ${viewingProfileMember.roleName === 'Leader'
+                      ? 'bg-amber-105 text-amber-705 border-amber-205 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20'
+                      : 'bg-emerald-55 text-emerald-75 border-emerald-25 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
+                      }`}>
                       {viewingProfileMember.roleName === 'Leader' ? 'Admin' : 'Thành viên'}
                     </span>
                     <span className="text-xs text-gray-400 dark:text-gray-500 font-label">•</span>
