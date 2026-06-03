@@ -11,13 +11,13 @@ export const registerAPI = async (userData) => {
   return response.data;
 };
 
-export const refreshAccessTokenAPI = async (refreshToken) => {
-  const response = await axios.post('/auth/refresh-token', { refreshToken });
+export const refreshAccessTokenAPI = async () => {
+  const response = await axios.post('/auth/refresh-token');
   return response.data;
 };
 
-export const logoutAPI = async (logoutData) => {
-  const response = await axios.post('/auth/logout', logoutData);
+export const logoutAPI = async () => {
+  const response = await axios.post('/auth/logout');
   return response.data;
 };
 

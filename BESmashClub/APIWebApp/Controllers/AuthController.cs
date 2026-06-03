@@ -12,12 +12,22 @@ namespace APIWebApp.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
-    private readonly IEmailService _emailService;
 
-    public AuthController(IAuthService authService, IEmailService emailService)
+    public AuthController(IAuthService authService)
     {
         _authService = authService;
-        _emailService = emailService;
+    }
+
+    private void SetRefreshTokenCookie(string refreshToken)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, 
+            SameSite = SameSiteMode.None,
+            Expires = DateTime.UtcNow.AddDays(7)
+        };
+        Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
     }
 
     /// <summary>
@@ -29,6 +39,7 @@ public class AuthController : ControllerBase
         try
         {
             var result = await _authService.RegisterAsync(request);
+            SetRefreshTokenCookie(result.RefreshToken);
             return Ok(ApiResponse<TokenResponse>.SuccessResponse(result, "Đăng ký thành công."));
         }
         catch (InvalidOperationException ex)
@@ -48,7 +59,8 @@ public class AuthController : ControllerBase
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
-            var result = await _authService.LoginAsync(request, ipAddress??"Not Found", userAgent);
+            var result = await _authService.LoginAsync(request, ipAddress, userAgent);
+            SetRefreshTokenCookie(result.RefreshToken);
             return Ok(ApiResponse<TokenResponse>.SuccessResponse(result, "Đăng nhập thành công."));
         }
         catch (UnauthorizedAccessException ex)
@@ -61,14 +73,19 @@ public class AuthController : ControllerBase
     /// Cấp lại Access Token mới dựa trên Refresh Token.
     /// </summary>
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    public async Task<IActionResult> RefreshToken()
     {
         try
         {
+            var refreshToken = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshToken))
+                return Unauthorized(ApiResponse.ErrorResponse("Không tìm thấy Refresh Token trong cookie."));
+
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
 
-            var result = await _authService.RefreshTokenAsync(request.RefreshToken, ipAddress??"Not Found", userAgent);
+            var result = await _authService.RefreshTokenAsync(refreshToken, ipAddress, userAgent);
+            SetRefreshTokenCookie(result.RefreshToken);
             return Ok(ApiResponse<TokenResponse>.SuccessResponse(result, "Token đã được làm mới."));
         }
         catch (UnauthorizedAccessException ex)
@@ -82,98 +99,15 @@ public class AuthController : ControllerBase
     /// </summary>
     [Authorize]
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout([FromBody] RefreshTokenRequest request)
+    public async Task<IActionResult> Logout()
     {
+        var refreshToken = Request.Cookies["refreshToken"];
+        if (string.IsNullOrEmpty(refreshToken))
+            return BadRequest(ApiResponse.ErrorResponse("Không tìm thấy Refresh Token."));
+
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        await _authService.LogoutAsync(userId, request.RefreshToken);
+        await _authService.LogoutAsync(userId, refreshToken);
+        Response.Cookies.Delete("refreshToken", new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
         return Ok(ApiResponse.SuccessResponse("Đăng xuất thành công."));
-    }
-
-    // ===================== EMAIL CONFIRMATION =====================
-
-    /// <summary>
-    /// Gửi email xác nhận đến địa chỉ email.
-    /// </summary>
-    [HttpPost("send-confirmation")]
-    public async Task<IActionResult> SendConfirmation([FromBody] ForgotPasswordRequest request)
-    {
-        try
-        {
-            await _emailService.SendEmailConfirmationAsync(request.Email);
-            return Ok(ApiResponse.SuccessResponse("Đã gửi email xác nhận. Vui lòng kiểm tra hộp thư."));
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ApiResponse.ErrorResponse(ex.Message));
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ApiResponse.ErrorResponse("Không thể gửi email. Vui lòng thử lại sau."));
-        }
-    }
-
-    /// <summary>
-    /// Xác nhận email bằng mã code.
-    /// </summary>
-    [HttpPost("verify-email")]
-    public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request)
-    {
-        try
-        {
-            await _emailService.VerifyEmailAsync(request.Code, request.Email);
-            return Ok(ApiResponse.SuccessResponse("Xác nhận email thành công."));
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ApiResponse.ErrorResponse(ex.Message));
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ApiResponse.ErrorResponse(ex.Message));
-        }
-    }
-
-    // ===================== PASSWORD RESET =====================
-
-    /// <summary>
-    /// Gửi email đặt lại mật khẩu.
-    /// </summary>
-    [HttpPost("forgot-password")]
-    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
-    {
-        try
-        {
-            await _emailService.SendPasswordResetAsync(request.Email);
-            return Ok(ApiResponse.SuccessResponse("Đã gửi email đặt lại mật khẩu. Vui lòng kiểm tra hộp thư."));
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ApiResponse.ErrorResponse(ex.Message));
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ApiResponse.ErrorResponse("Không thể gửi email. Vui lòng thử lại sau."));
-        }
-    }
-
-    /// <summary>
-    /// Đặt lại mật khẩu bằng mã code từ email.
-    /// </summary>
-    [HttpPost("reset-password")]
-    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
-    {
-        try
-        {
-            await _emailService.ResetPasswordAsync(request.Code, request.Email, request.NewPassword);
-            return Ok(ApiResponse.SuccessResponse("Đặt lại mật khẩu thành công."));
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ApiResponse.ErrorResponse(ex.Message));
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ApiResponse.ErrorResponse(ex.Message));
-        }
     }
 }

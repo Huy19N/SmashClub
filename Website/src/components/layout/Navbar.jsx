@@ -70,7 +70,7 @@ export default function Navbar() {
     { name: 'Trang chủ', path: PATHS.HOME, icon: Home },
     { name: 'Giới thiệu', path: PATHS.ABOUT, icon: Users },
     { name: 'Liên hệ', path: PATHS.CONTACT, icon: Mail },
-    { name: 'Cao cấp', path: PATHS.PREMIUM, icon: Crown },
+    { name: 'Hội viên', path: PATHS.PREMIUM, icon: Crown },
     { name: 'Bộ sưu tập', path: PATHS.COLLECTIONS, icon: Layers },
   ];
 
