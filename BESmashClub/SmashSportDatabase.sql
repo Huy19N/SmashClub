@@ -395,102 +395,158 @@ GO
 USE SmashClub;
 GO
 
--- 1. THÊM DANH MỤC CƠ BẢN
+-- ==========================================
+-- 1. THÊM DANH MỤC CƠ BẢN (MASTER DATA)
+-- ==========================================
 INSERT INTO UserRoles (RoleId, RoleName) VALUES (1, N'Admin'), (2, N'User'), (3, N'FacilityOwner');
 INSERT INTO TeamRoles (TeamRoleId, RoleName) VALUES (1, N'Leader'), (2, N'Member');
 INSERT INTO CourtStatus (StatusId, StatusName) VALUES (1, N'Sẵn sàng'), (2, N'Bảo trì');
-
--- Đã sửa: Thêm seed data cho BookingStatus
 INSERT INTO BookingStatus (StatusId, StatusName) VALUES (1, N'Pending'), (2, N'Confirmed'), (3, N'Cancelled');
 
+-- (PaymentStatuses và PayoutStatuses đã được insert trong schema của bạn, nhưng tôi chạy lại cho chắc chắn nếu bị xóa)
+IF NOT EXISTS (SELECT 1 FROM PaymentStatuses WHERE StatusId = 1)
+BEGIN
+    INSERT INTO PaymentStatuses (StatusId, StatusName) VALUES (1, N'Pending'), (2, N'Paid'), (3, N'Cancelled'), (4, N'Expired'), (5, N'Refunded');
+    INSERT INTO PayoutStatuses (StatusId, StatusName) VALUES (1, N'Pending'), (2, N'Processing'), (3, N'Completed'), (4, N'Failed');
+END
+
 INSERT INTO Sports (SportName, Description) VALUES 
-    (N'Cầu Lông', N'Sân thảm tiêu chuẩn'), 
-    (N'Bóng Bàn', N'Bàn thi đấu quốc tế');
+    (N'Cầu Lông', N'Sân thảm tiêu chuẩn BWF'), 
+    (N'Bóng Bàn', N'Bàn thi đấu quốc tế ITTF'),
+    (N'Pickleball', N'Sân Pickleball tiêu chuẩn ngoài trời');
 
 INSERT INTO SportLevels (SportId, LevelName, RankValue) VALUES 
     (1, N'Cơ bản', 1), (1, N'Nâng cao', 2), (1, N'Tuyển thủ', 3),
-    (2, N'Cơ bản', 1), (2, N'Nghiệp dư', 2), (2, N'Tuyển thủ', 3);
+    (2, N'Cơ bản', 1), (2, N'Nghiệp dư', 2), (2, N'Tuyển thủ', 3),
+    (3, N'Newbie', 1), (3, N'Amateur', 2), (3, N'Pro', 3);
 
+-- ==========================================
 -- 2. THÊM CẤP ĐỘ VÀ GÓI SUBSCRIPTION
+-- ==========================================
 INSERT INTO SubscriptionTiers (TierName, Description) VALUES 
-    ('No Paid', N'Gói miễn phí với tính năng cơ bản'),
-    ('Pro', N'Gói nâng cao'),
-    ('Ultra', N'Gói cao cấp nhất');
+    ('Basic', N'Tài khoản miễn phí'),
+    ('Pro', N'Gói nâng cao cho người chơi thường xuyên'),
+    ('Club Owner', N'Gói quản lý dành cho chủ sân');
 
-DECLARE @NoPaidId INT = (SELECT TierId FROM SubscriptionTiers WHERE TierName = 'No Paid');
+DECLARE @BasicId INT = (SELECT TierId FROM SubscriptionTiers WHERE TierName = 'Basic');
 DECLARE @ProId INT = (SELECT TierId FROM SubscriptionTiers WHERE TierName = 'Pro');
-DECLARE @UltraId INT = (SELECT TierId FROM SubscriptionTiers WHERE TierName = 'Ultra');
+DECLARE @OwnerId INT = (SELECT TierId FROM SubscriptionTiers WHERE TierName = 'Club Owner');
 
 INSERT INTO SubscriptionPlans (TierId, DurationMonths, Price) VALUES 
-    (@NoPaidId, 0, 0),
-    (@ProId, 1, 30000), (@ProId, 6, 180000), (@ProId, 12, 360000),
-    (@UltraId, 1, 100000), (@UltraId, 6, 600000), (@UltraId, 12, 1200000);
+    (@BasicId, 0, 0),
+    (@ProId, 1, 49000), (@ProId, 6, 250000), (@ProId, 12, 450000),
+    (@OwnerId, 1, 199000), (@OwnerId, 12, 1990000);
 
+-- ==========================================
 -- 3. KHỞI TẠO BIẾN CHO DATA LIÊN KẾT
+-- ==========================================
 DECLARE @AdminId UNIQUEIDENTIFIER = NEWID();
+DECLARE @Owner1Id UNIQUEIDENTIFIER = NEWID();
 DECLARE @User1Id UNIQUEIDENTIFIER = NEWID();
 DECLARE @User2Id UNIQUEIDENTIFIER = NEWID();
-DECLARE @TeamId UNIQUEIDENTIFIER = NEWID();
-DECLARE @FacilityId INT;
-DECLARE @CourtId INT;
-DECLARE @BookingId UNIQUEIDENTIFIER = NEWID();
-DECLARE @ScheduleId UNIQUEIDENTIFIER = NEWID();
 
+DECLARE @Team1Id UNIQUEIDENTIFIER = NEWID();
+DECLARE @Facility1Id INT;
+DECLARE @Court1Id INT, @Court2Id INT;
+DECLARE @Booking1Id UNIQUEIDENTIFIER = NEWID();
+DECLARE @Schedule1Id UNIQUEIDENTIFIER = NEWID();
+DECLARE @Payment1Id UNIQUEIDENTIFIER = NEWID();
+
+-- ==========================================
 -- 4. THÊM NGƯỜI DÙNG & PROFILE
+-- ==========================================
 INSERT INTO Users (UserId, RoleId, FullName, Email, Password, PhoneNumber) VALUES 
-    (@AdminId, 1, N'Quản Trị Viên', 'admin@smashclub.com', 'hashed_pwd', '0999999999'),
-    (@User1Id, 2, N'Nguyễn Văn A', 'nguyenvana@gmail.com', 'hashed_pwd', '0912345678'),
-    (@User2Id, 2, N'Trần Thị B', 'tranthib@gmail.com', 'hashed_pwd', '0987654321');
+    (@AdminId, 1, N'System Admin', 'admin@smashclub.vn', 'hashed_pwd_admin', '0900000000'),
+    (@Owner1Id, 3, N'Trần Chủ Sân', 'owner1@smashclub.vn', 'hashed_pwd_owner', '0911111111'),
+    (@User1Id, 2, N'Nguyễn Quang Hải', 'hai.nguyen@gmail.com', 'hashed_pwd_user', '0922222222'),
+    (@User2Id, 2, N'Lê Thanh Thúy', 'thuy.le@gmail.com', 'hashed_pwd_user', '0933333333');
 
 INSERT INTO UserSportProfiles (UserId, SportId, RankValue) VALUES 
-    (@User1Id, 1, 1), (@User1Id, 2, 2),
-    (@User2Id, 1, 2);
+    (@User1Id, 1, 2), -- Hải chơi Cầu lông nâng cao
+    (@User1Id, 3, 1), -- Hải chơi Pickleball newbie
+    (@User2Id, 1, 1); -- Thúy chơi Cầu lông cơ bản
 
--- 5. KÍCH HOẠT DÙNG THỬ 3 THÁNG GÓI PRO CHO USER 1
-DECLARE @TrialPlanId INT = (SELECT TOP 1 PlanId FROM SubscriptionPlans WHERE TierId = @ProId AND DurationMonths = 1);
+-- Gán gói Pro cho User1 (Đã thanh toán)
+DECLARE @ProPlan1Month INT = (SELECT TOP 1 PlanId FROM SubscriptionPlans WHERE TierId = @ProId AND DurationMonths = 1);
+DECLARE @Sub1Id UNIQUEIDENTIFIER = NEWID();
+INSERT INTO UserSubscriptions (UserSubscriptionId, UserId, PlanId, StartDate, EndDate, IsTrial, IsActive)
+VALUES (@Sub1Id, @User1Id, @ProPlan1Month, GETDATE(), DATEADD(month, 1, GETDATE()), 0, 1);
 
--- Đã sửa: Đổi 'Status' thành 'IsActive' và truyền giá trị 1 (BIT)
-INSERT INTO UserSubscriptions (UserId, PlanId, StartDate, EndDate, IsTrial, IsActive)
-VALUES (
-    @User1Id, @TrialPlanId, GETDATE(), DATEADD(month, 3, GETDATE()), 1, 1
-);
+-- Thanh toán cho gói Pro của User1
+INSERT INTO Payments (PaymentId, OrderCode, PaymentType, ReferenceId, UserId, Amount, [Description], StatusId, PaymentProvider)
+VALUES (NEWID(), 100001, 'Subscription', CONVERT(NVARCHAR(100), @Sub1Id), @User1Id, 49000, N'Thanh toán gói Pro 1 tháng', 2, 'PayOS');
 
--- 6. THÊM TEAM
+-- ==========================================
+-- 5. TẠO CƠ SỞ VẬT CHẤT & BẢNG GIÁ
+-- ==========================================
+-- Chủ sân mở sân tại TP.HCM
+INSERT INTO Facilities (OwnerId, Name, City, District, [Address]) VALUES 
+    (@Owner1Id, N'SmashClub Arena Quận 10', N'Hồ Chí Minh', N'Quận 10', N'285 Cách Mạng Tháng 8, Phường 12');
+SET @Facility1Id = SCOPE_IDENTITY();
+
+-- Cấu hình tài khoản ngân hàng cho Sân
+INSERT INTO FacilityBankAccounts (FacilityId, BankName, AccountNumber, AccountHolder)
+VALUES (@Facility1Id, N'Vietcombank', N'0123456789', N'TRAN CHU SAN');
+
+-- Thêm Sân con
+INSERT INTO Courts (FacilityId, SportId, CourtName, StatusId, IsActive) VALUES 
+    (@Facility1Id, 1, N'Sân Cầu Lông VIP 1', 1, 1),
+    (@Facility1Id, 1, N'Sân Cầu Lông VIP 2', 1, 1),
+    (@Facility1Id, 3, N'Sân Pickleball Ngoài Trời', 1, 1);
+
+-- Lưu lại ID của Sân VIP 1 để Book
+SET @Court1Id = (SELECT TOP 1 CourtId FROM Courts WHERE FacilityId = @Facility1Id AND CourtName = N'Sân Cầu Lông VIP 1');
+
+-- Cấu hình giá sân (CourtCosts)
+-- Giá giờ hành chính (08:00 - 17:00): 100k/giờ
+INSERT INTO CourtCosts (FacilityId, CourtId, StartTime, EndTime, DurationMinutes, Cost, IsActive)
+VALUES (@Facility1Id, @Court1Id, '08:00', '17:00', 60, 100000, 1);
+
+-- Giá giờ vàng (17:00 - 22:00): 150k/giờ
+INSERT INTO CourtCosts (FacilityId, CourtId, StartTime, EndTime, DurationMinutes, Cost, IsActive)
+VALUES (@Facility1Id, @Court1Id, '17:00', '22:00', 60, 150000, 1);
+
+-- ==========================================
+-- 6. TẠO TEAM & GIAO TIẾP
+-- ==========================================
 INSERT INTO Teams (TeamId, TeamName, Description) VALUES 
-    (@TeamId, N'Smashers Hanoi', N'CLB giao lưu cầu lông khu vực Cầu Giấy');
+    (@Team1Id, N'SaiGon Smashers', N'Hội đam mê cầu lông khu vực trung tâm TP.HCM');
 
 INSERT INTO TeamMembers (TeamId, UserId, TeamRoleId, Wins, Losses) VALUES 
-    (@TeamId, @User1Id, 1, 10, 2), 
-    (@TeamId, @User2Id, 2, 5, 5);
+    (@Team1Id, @User1Id, 1, 15, 3), -- Hải là Leader
+    (@Team1Id, @User2Id, 2, 2, 8);  -- Thúy là Member
 
--- 7. TẠO CƠ SỞ VẬT CHẤT & SÂN BÃI (Do Admin làm chủ)
-INSERT INTO Facilities (OwnerId, Name, City, District, [Address]) VALUES 
-    (@AdminId, N'Sân Cầu Lông Bách Khoa', N'Hà Nội', N'Hai Bà Trưng', N'Khuôn viên ĐHBK');
-SET @FacilityId = SCOPE_IDENTITY();
+INSERT INTO TeamMessages (TeamId, SenderId, Content) VALUES 
+    (@Team1Id, @User1Id, N'Tối thứ 7 tuần này anh em ra sân Quận 10 nhé, mình vừa chốt sân xong!'),
+    (@Team1Id, @User2Id, N'Tuyệt vời anh ơi, em đăng ký 1 slot nha.');
 
-INSERT INTO Courts (FacilityId, SportId, CourtName, StatusId, IsActive) VALUES 
-    (@FacilityId, 1, N'Sân Số 1 (Thảm VIP)', 1, 1);
-SET @CourtId = SCOPE_IDENTITY();
-
--- 8. USER 1 ĐẶT SÂN
-DECLARE @PlayStartTime DATETIME = DATEADD(day, 2, GETDATE());
+-- ==========================================
+-- 7. ĐẶT SÂN & THANH TOÁN (BOOKING & PAYMENT & PAYOUT)
+-- ==========================================
+-- User1 đặt sân VIP 1 từ 18:00 đến 20:00 (Giờ vàng -> 2 tiếng = 300k)
+DECLARE @PlayStartTime DATETIME = DATEADD(hour, 18, CAST(CAST(DATEADD(day, 2, GETDATE()) AS DATE) AS DATETIME)); 
 DECLARE @PlayEndTime DATETIME = DATEADD(hour, 2, @PlayStartTime);
 
--- Đã sửa: Truyền thêm StatusId = 2 (Confirmed) vào lệnh Insert
 INSERT INTO Bookings (BookingId, CourtId, BookedByUserId, StartTime, EndTime, TotalCost, StatusId) VALUES 
-    (@BookingId, @CourtId, @User1Id, @PlayStartTime, @PlayEndTime, 300000, 2);
+    (@Booking1Id, @Court1Id, @User1Id, @PlayStartTime, @PlayEndTime, 300000, 2); -- Status 2: Confirmed
 
--- 9. TẠO LỊCH CHƠI CHO TEAM TỪ BOOKING
+-- Thanh toán cho Booking
+INSERT INTO Payments (PaymentId, OrderCode, PaymentType, ReferenceId, UserId, Amount, [Description], StatusId, PaymentProvider, PaidAt)
+VALUES (@Payment1Id, 200001, 'Booking', CONVERT(NVARCHAR(100), @Booking1Id), @User1Id, 300000, N'Thanh toán tiền sân cuối tuần', 2, 'VNPay', GETDATE());
+
+-- Tạo lệnh chi (Payout) chuyển tiền từ Platform cho Chủ Sân (Giả sử cắt phế 10%, trả chủ sân 270k)
+INSERT INTO Payouts (PayoutId, PaymentId, FacilityId, OwnerUserId, Amount, StatusId, BankAccountNo, BankName, AccountHolder, Note)
+VALUES (NEWID(), @Payment1Id, @Facility1Id, @Owner1Id, 270000, 1, N'0123456789', N'Vietcombank', N'TRAN CHU SAN', N'Doanh thu booking ngày ' + CONVERT(NVARCHAR, @PlayStartTime, 103));
+
+-- ==========================================
+-- 8. SCHEDULING (GỌI ĐÀO MỎ/MỞ KÈO)
+-- ==========================================
 INSERT INTO Schedules (ScheduleId, HostTeamId, BookingId, Title, MaxParticipants, CostPerPerson, CostNote) VALUES 
-    (@ScheduleId, @TeamId, @BookingId, N'Giao lưu cuối tuần', 10, 50000, N'Tiền sân 300k, tiền nước 200k chia đều');
+    (@Schedule1Id, @Team1Id, @Booking1Id, N'Giao lưu đánh đôi Nam Nữ', 6, 60000, N'Tiền sân 300k + 60k tiền trà đá cầu cước, chia đều 6 người');
 
--- 10. THÀNH VIÊN ĐĂNG KÝ THAM GIA
 INSERT INTO ScheduleParticipants (ScheduleId, UserId, IsAttended) VALUES 
-    (@ScheduleId, @User1Id, 1), 
-    (@ScheduleId, @User2Id, 0);
+    (@Schedule1Id, @User1Id, 1), 
+    (@Schedule1Id, @User2Id, 0);
 
--- 11. THÊM DỮ LIỆU TIN NHẮN MẪU (Module mới)
-INSERT INTO TeamMessages (TeamId, SenderId, Content) VALUES 
-    (@TeamId, @User1Id, N'Chào mọi người, cuối tuần này team mình giao lưu nhé!'),
-    (@TeamId, @User2Id, N'Ok bạn, mình đã đăng ký tham gia rồi.');
+PRINT N'✅ Đã khởi tạo thành công Seed Data hoàn chỉnh cho hệ thống SmashClub!';
 GO
