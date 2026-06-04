@@ -24,7 +24,6 @@ CREATE TABLE Users (
     RoleId INT NOT NULL,
     FullName NVARCHAR(255) NOT NULL,
     Email NVARCHAR(255) NOT NULL,
-	EmailVerified BIT DEFAULT 0,
     Password VARCHAR(255) NOT NULL, 
     PhoneNumber NVARCHAR(20),
     CreatedAt DATETIME CONSTRAINT DF_Users_CreatedAt DEFAULT GETDATE(),
