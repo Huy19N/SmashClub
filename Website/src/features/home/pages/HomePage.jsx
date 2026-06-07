@@ -14,6 +14,8 @@ import videoBg from '../../../assets/video_smash_club.mp4';
 import CollectionsSection from '../components/CollectionsSection';
 import PremiumSection from '../components/PremiumSection';
 import ContactSection from '../components/ContactSection';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 /**
  * HomePage
@@ -93,6 +95,19 @@ export default function HomePage() {
       clearInterval(interval);
     };
   }, []);
+
+  // 1b. Initialize AOS
+  useEffect(() => {
+    if (showHomepage) {
+      AOS.init({
+        duration: 800,
+        easing: 'ease-out-cubic',
+        once: false,
+        offset: 80,
+        delay: 0,
+      });
+    }
+  }, [showHomepage]);
 
   // 2. High-Performance Hybrid Scroll Syncer (zero React re-renders during scroll)
   useEffect(() => {
@@ -279,30 +294,61 @@ export default function HomePage() {
         {/* ---------------- SCOLLYTELLING SECTIONS ---------------- */}
         <main className="relative z-10 w-full select-none pb-[20vh]">
 
-          {/* SECTION 1: HERO (Sticks to screen) */}
+          {/* SECTION 1: HERO VIDEO-ONLY (Sticks to screen — no text, just the shuttlecock video) */}
           <section className="h-[200vh] relative w-full">
-            <div className="sticky top-0 h-screen flex flex-col justify-center px-4 max-w-5xl mx-auto text-left">
-              {/* Fade in wrapper so logo is unobstructed initially */}
+            <div className="sticky top-0 h-screen flex flex-col justify-end px-4 max-w-5xl mx-auto text-left">
               <div
                 ref={heroContentRef}
-                className="space-y-6 max-w-3xl"
                 style={{ opacity: 1, pointerEvents: 'auto', transition: 'opacity 0.1s ease-out' }}
               >
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider text-primary bg-primary/10 border border-primary/20 uppercase font-label">
+                {/* Scroll Down Indicator */}
+                <div
+                  ref={scrollIndicatorRef}
+                  className="flex flex-col items-center gap-2 text-gray-400 animate-pulse font-label pb-10"
+                  style={{ opacity: 1, transition: 'opacity 0.15s ease-out' }}
+                >
+                  <span className="text-xs font-semibold tracking-widest uppercase text-white drop-shadow-md">Cuộn để khám phá</span>
+                  <ArrowDown className="h-5 w-5 animate-bounce text-primary" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* SECTION 1B: HERO TEXT (Appears below, with AOS animations) */}
+          <section className="h-[200vh] relative w-full">
+            <div className="sticky top-0 h-screen flex flex-col justify-center items-end px-4 max-w-5xl mx-auto text-right">
+              <div className="space-y-6 max-w-3xl">
+                <span
+                  data-aos="fade-left"
+                  data-aos-delay="0"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider text-primary bg-primary/10 border border-primary/20 uppercase font-label"
+                >
                   <Shield className="h-3.5 w-3.5 text-primary" />
                   Sân đấu đẳng cấp
                 </span>
 
-                <h1 className="text-5xl sm:text-8xl font-black tracking-tighter leading-none font-display drop-shadow-2xl">
+                <h1
+                  data-aos="fade-left"
+                  data-aos-delay="100"
+                  className="text-5xl sm:text-8xl font-black tracking-tighter leading-none font-display drop-shadow-2xl"
+                >
                   PHÁ VỠ <br />
                   <span className="text-gradient-primary font-bold italic">GIỚI HẠN.</span>
                 </h1>
 
-                <p className="text-gray-200 text-lg sm:text-2xl font-light leading-relaxed max-w-2xl font-sans drop-shadow-md">
+                <p
+                  data-aos="fade-left"
+                  data-aos-delay="200"
+                  className="text-gray-200 text-lg sm:text-2xl font-light leading-relaxed max-w-2xl font-sans drop-shadow-md ml-auto"
+                >
                   Trải nghiệm thể thao đẳng cấp với hệ thống sân chất lượng cao, đặt sân tự động và hệ thống chiếu sáng chuyên nghiệp.
                 </p>
 
-                <div className="flex flex-wrap gap-4 pt-6 font-label">
+                <div
+                  data-aos="fade-left"
+                  data-aos-delay="350"
+                  className="flex flex-wrap gap-4 pt-6 font-label justify-end"
+                >
                   <Link
                     to={PATHS.BOOKING}
                     className="px-8 py-4 rounded-lg font-bold bg-primary hover:bg-primary-dark text-[#052e14] transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-primary/20 cursor-pointer inline-flex items-center gap-2"
@@ -318,16 +364,6 @@ export default function HomePage() {
                   </Link>
                 </div>
               </div>
-
-              {/* Scroll Down Indicator */}
-              <div
-                ref={scrollIndicatorRef}
-                className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-400 animate-pulse font-label"
-                style={{ opacity: 1, transition: 'opacity 0.15s ease-out' }}
-              >
-                <span className="text-xs font-semibold tracking-widest uppercase text-white drop-shadow-md">Cuộn để khám phá</span>
-                <ArrowDown className="h-5 w-5 animate-bounce text-primary" />
-              </div>
             </div>
           </section>
 
@@ -336,15 +372,15 @@ export default function HomePage() {
             <div className="sticky top-0 h-screen flex items-center px-4 max-w-5xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
                 <div className="space-y-6">
-                  <span className="text-primary font-bold text-sm tracking-widest uppercase font-label drop-shadow-md">01 / Sân Đấu</span>
-                  <h2 className="text-4xl sm:text-5xl font-extrabold font-display leading-tight drop-shadow-lg">
+                  <span data-aos="fade-right" className="text-primary font-bold text-sm tracking-widest uppercase font-label drop-shadow-md">01 / Sân Đấu</span>
+                  <h2 data-aos="fade-up" data-aos-delay="100" className="text-4xl sm:text-5xl font-extrabold font-display leading-tight drop-shadow-lg">
                     Thiết Kế Cho <br />
                     <span className="text-gradient-primary italic">Tốc Độ & Sức Bật</span>
                   </h2>
-                  <p className="text-gray-200 leading-relaxed text-base sm:text-lg font-sans drop-shadow-md">
+                  <p data-aos="fade-up" data-aos-delay="200" className="text-gray-200 leading-relaxed text-base sm:text-lg font-sans drop-shadow-md">
                     Mỗi sân tại SmashClub đều được trang bị hệ thống sàn chống sốc chuyên nghiệp và bề mặt PVC tiêu chuẩn. Hệ thống đèn LED dọc công suất cao mang đến tầm nhìn hoàn hảo mà không gây chói mắt.
                   </p>
-                  <div className="grid grid-cols-2 gap-4 pt-4 font-label">
+                  <div data-aos="fade-up" data-aos-delay="300" className="grid grid-cols-2 gap-4 pt-4 font-label">
                     <div className="bg-black/40 backdrop-blur-md p-4 rounded-lg flex items-start gap-3 border border-white/10">
                       <Activity className="h-5 w-5 text-secondary mt-0.5 shrink-0" />
                       <div>
@@ -362,7 +398,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="bg-black/50 backdrop-blur-xl p-8 rounded-2xl border border-white/10 space-y-6 shadow-2xl">
+                <div data-aos="fade-left" data-aos-delay="200" className="bg-black/50 backdrop-blur-xl p-8 rounded-2xl border border-white/10 space-y-6 shadow-2xl">
                   <div className="h-1 bg-gradient-to-r from-primary to-secondary rounded-full w-20" />
                   <h3 className="text-2xl font-bold font-display text-white">Đặt Sân Tự Động</h3>
                   <p className="text-gray-300 text-sm leading-relaxed font-sans">
@@ -384,7 +420,7 @@ export default function HomePage() {
           <section className="h-[200vh] relative w-full">
             <div className="sticky top-0 h-screen flex items-center px-4 max-w-5xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
-                <div className="bg-black/50 backdrop-blur-xl p-8 rounded-2xl border border-white/10 space-y-6 shadow-2xl order-2 md:order-1">
+                <div data-aos="fade-right" data-aos-delay="200" className="bg-black/50 backdrop-blur-xl p-8 rounded-2xl border border-white/10 space-y-6 shadow-2xl order-2 md:order-1">
                   <Trophy className="h-10 w-10 text-primary" />
                   <h3 className="text-2xl font-bold font-display text-white">Giải Đấu Sôi Động</h3>
                   <p className="text-gray-300 text-sm leading-relaxed font-sans">
@@ -400,15 +436,15 @@ export default function HomePage() {
                 </div>
 
                 <div className="order-1 md:order-2 space-y-6">
-                  <span className="text-primary font-bold text-sm tracking-widest uppercase font-label drop-shadow-md">02 / Cộng Đồng</span>
-                  <h2 className="text-4xl sm:text-5xl font-extrabold font-display leading-tight drop-shadow-lg">
+                  <span data-aos="fade-left" className="text-primary font-bold text-sm tracking-widest uppercase font-label drop-shadow-md">02 / Cộng Đồng</span>
+                  <h2 data-aos="fade-up" data-aos-delay="100" className="text-4xl sm:text-5xl font-extrabold font-display leading-tight drop-shadow-lg">
                     Chinh Phục <br />
                     <span className="text-gradient-primary italic">Bảng Xếp Hạng</span>
                   </h2>
-                  <p className="text-gray-200 leading-relaxed text-base sm:text-lg font-sans drop-shadow-md">
+                  <p data-aos="fade-up" data-aos-delay="200" className="text-gray-200 leading-relaxed text-base sm:text-lg font-sans drop-shadow-md">
                     Tham gia giải đấu, ghép cặp với đối thủ cùng trình độ và luyện tập cùng các huấn luyện viên quốc gia. Gói hội viên mang đến quyền truy cập cao nhất vào hệ thống sân đấu chuyên nghiệp.
                   </p>
-                  <div className="flex gap-6 pt-4 text-left font-label">
+                  <div data-aos="fade-up" data-aos-delay="300" className="flex gap-6 pt-4 text-left font-label">
                     <div>
                       <h4 className="text-3xl font-black text-gradient-primary font-display drop-shadow-md">1.2K+</h4>
                       <p className="text-xs text-gray-300 uppercase tracking-wider">Hội viên</p>
@@ -430,23 +466,23 @@ export default function HomePage() {
           {/* SECTION 4: CALL TO ACTION (Sticks to screen) */}
           <section className="h-[100vh] relative w-full">
             <div className="sticky top-0 h-screen flex flex-col justify-center items-center px-4 max-w-5xl mx-auto text-center">
-              <div className="bg-black/60 backdrop-blur-xl p-8 sm:p-16 rounded-3xl border border-white/10 space-y-8 max-w-3xl relative overflow-hidden shadow-2xl">
+              <div data-aos="zoom-in" className="bg-black/60 backdrop-blur-xl p-8 sm:p-16 rounded-3xl border border-white/10 space-y-8 max-w-3xl relative overflow-hidden shadow-2xl">
                 <div className="absolute -top-24 -left-24 h-48 w-48 bg-primary/20 rounded-full blur-3xl animate-pulse-slow pointer-events-none" />
                 <div className="absolute -bottom-24 -right-24 h-48 w-48 bg-secondary/20 rounded-full blur-3xl animate-pulse-slow pointer-events-none" />
 
                 <div className="relative space-y-6">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wider text-primary bg-primary/10 border border-primary/20 uppercase font-label">
+                  <span data-aos="fade-down" data-aos-delay="100" className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wider text-primary bg-primary/10 border border-primary/20 uppercase font-label">
                     Bắt đầu ngay
                   </span>
-                  <h2 className="text-3xl sm:text-5xl font-extrabold font-display tracking-tight text-white leading-tight">
+                  <h2 data-aos="fade-up" data-aos-delay="200" className="text-3xl sm:text-5xl font-extrabold font-display tracking-tight text-white leading-tight">
                     Sẵn Sàng <br />
                     Chinh Phục Sân Đấu?
                   </h2>
-                  <p className="text-gray-300 text-sm sm:text-base max-w-lg mx-auto leading-relaxed font-sans">
+                  <p data-aos="fade-up" data-aos-delay="300" className="text-gray-300 text-sm sm:text-base max-w-lg mx-auto leading-relaxed font-sans">
                     Tham gia SmashClub ngay hôm nay để đặt sân tự động, sắm trang bị chuyên nghiệp tại cửa hàng Pro Shop và thử sức trên bảng xếp hạng.
                   </p>
 
-                  <div className="flex flex-wrap justify-center gap-4 pt-4 font-label">
+                  <div data-aos="fade-up" data-aos-delay="400" className="flex flex-wrap justify-center gap-4 pt-4 font-label">
                     <Link
                       to={PATHS.BOOKING}
                       className="px-8 py-4 rounded-lg font-bold bg-primary hover:bg-primary-dark text-[#052e14] transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-primary/20 cursor-pointer"
