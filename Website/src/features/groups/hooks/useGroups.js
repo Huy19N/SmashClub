@@ -14,6 +14,12 @@ import {
   getMessagesAPI,
   sendMessageAPI,
   deleteMessageAPI,
+  createScheduleAPI,
+  deleteScheduleAPI,
+  updateScheduleAPI,
+  getScheduleParticipantsAPI,
+  addScheduleParticipantAPI,
+  removeScheduleParticipantAPI,
 } from '../api/groups.api.js';
 
 /**
@@ -311,6 +317,156 @@ export const useTeamSchedules = (teamId) => {
   }, [fetchSchedules]);
 
   return { schedules, isLoading, error, refetch: fetchSchedules };
+};
+
+// ─── useCreateSchedule ────────────────────────────────────────
+
+export const useCreateSchedule = () => {
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const createSchedule = async (teamId, scheduleData) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await createScheduleAPI(teamId, scheduleData);
+      return response;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Không thể tạo lịch chơi.';
+      setError(errorMsg);
+      throw errorMsg;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { createSchedule, isLoading, error };
+};
+
+// ─── useDeleteSchedule ────────────────────────────────────────
+
+export const useDeleteSchedule = () => {
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const deleteSchedule = async (scheduleId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await deleteScheduleAPI(scheduleId);
+      return response;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Không thể xóa lịch chơi.';
+      setError(errorMsg);
+      throw errorMsg;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { deleteSchedule, isLoading, error };
+};
+
+// ─── useUpdateSchedule ──────────────────────────────────────────
+
+export const useUpdateSchedule = () => {
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const updateSchedule = async (scheduleId, data) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await updateScheduleAPI(scheduleId, data);
+      return response;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Không thể cập nhật lịch trình.';
+      setError(errorMsg);
+      throw errorMsg;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { updateSchedule, isLoading, error };
+};
+
+// ─── useScheduleParticipants ────────────────────────────────────────
+
+export const useScheduleParticipants = (scheduleId) => {
+  const [participants, setParticipants] = useState([]);
+  const [isLoading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchParticipants = useCallback(async () => {
+    if (!scheduleId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getScheduleParticipantsAPI(scheduleId);
+      const data = response?.data ?? response;
+      setParticipants(Array.isArray(data) ? data : []);
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Không thể tải danh sách tham gia.';
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  }, [scheduleId]);
+
+  useEffect(() => {
+    fetchParticipants();
+  }, [fetchParticipants]);
+
+  return { participants, isLoading, error, refetch: fetchParticipants };
+};
+
+// ─── useAddScheduleParticipant ────────────────────────────────────────
+
+export const useAddScheduleParticipant = () => {
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const addParticipant = async (scheduleId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await addScheduleParticipantAPI(scheduleId);
+      return response;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Không thể thêm người tham gia.';
+      setError(errorMsg);
+      throw errorMsg;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { addParticipant, isLoading, error };
+};
+
+// ─── useRemoveScheduleParticipant ────────────────────────────────────────
+
+export const useRemoveScheduleParticipant = () => {
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const removeParticipant = async (scheduleId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await removeScheduleParticipantAPI(scheduleId);
+      return response;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Không thể xóa người tham gia.';
+      setError(errorMsg);
+      throw errorMsg;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { removeParticipant, isLoading, error };
 };
 
 // ─── useTeamMembers ───────────────────────────────────────────

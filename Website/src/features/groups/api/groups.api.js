@@ -62,6 +62,44 @@ export const getTeamSchedulesAPI = async (teamId) => {
   return response.data;
 };
 
+/** Create team schedule (POST /api/teams/{teamId}/schedules) */
+export const createScheduleAPI = async (teamId, scheduleData) => {
+  const response = await api.post(`/teams/${teamId}/schedules`, scheduleData);
+  return response.data;
+};
+
+/** Delete a schedule (DELETE /api/schedules/{scheduleId}) */
+export const deleteScheduleAPI = async (scheduleId) => {
+  const response = await api.delete(`/schedules/${scheduleId}`);
+  return response.data;
+};
+
+/** Update a schedule (PUT /api/schedules/{scheduleId}) */
+export const updateScheduleAPI = async (scheduleId, data) => {
+  const response = await api.put(`/schedules/${scheduleId}`, data);
+  return response.data;
+};
+
+// ─── Schedules Participants ───────────────────────────────────
+
+/** Get all participants of a schedule (GET /api/schedules/{scheduleId}/participants) */
+export const getScheduleParticipantsAPI = async (scheduleId) => {
+  const response = await api.get(`/schedules/${scheduleId}/participants`);
+  return response.data;
+};
+
+/** Add a participant to a schedule (POST /api/schedules/{scheduleId}/participants) */
+export const addScheduleParticipantAPI = async (scheduleId) => {
+  const response = await api.post(`/schedules/${scheduleId}/participants`);
+  return response.data;
+};
+
+/** Remove a participant from a schedule (DELETE /api/schedules/{scheduleId}/participants/me) */
+export const removeScheduleParticipantAPI = async (scheduleId) => {
+  const response = await api.delete(`/schedules/${scheduleId}/participants/me`);
+  return response.data;
+};
+
 // ─── Team Members ─────────────────────────────────────────────
 
 /** Get all members of a team (GET /api/teams/{teamId}/members) */

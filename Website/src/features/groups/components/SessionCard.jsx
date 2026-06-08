@@ -1,11 +1,34 @@
-import { Clock, MapPin, ChevronRight, MoreVertical } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Clock, MapPin, ChevronRight, MoreVertical, Trash2, UserPlus, UserMinus, Loader2 } from 'lucide-react';
 
 /**
  * SessionCard Component
- * Premium card displaying schedule information, capacity meter, overlapping avatars,
+ * Premium card displaying schedule information, capacity meter, vote buttons,
  * and clear light/dark aesthetics.
  */
-export default function SessionCard({ session, onManage }) {
+export default function SessionCard({
+  session,
+  onManage,
+  isLeader,
+  isDeleting,
+  onDelete,
+  hasJoined,
+  isVoting,
+  onVoteJoin,
+  onVoteLeave,
+}) {
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   const formatTime = (iso) => {
     if (!iso) return '';
     const d = new Date(iso);
@@ -45,33 +68,45 @@ export default function SessionCard({ session, onManage }) {
     return `${Math.round((current / max) * 100)}%`;
   };
 
-  const getLevelBadge = (sportName) => {
-    const levels = ['Intermediate', 'Advanced', 'Casual'];
-    const colors = [
-      'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20',
-      'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20',
-      'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20',
-    ];
-    // Seed index based on string length to give varied badges
-    const idx = (sportName?.length || 0) % 3;
-    return { label: levels[idx], classes: colors[idx] };
-  };
-
-  const badge = getLevelBadge(session.sportName || 'Badminton');
+  const isFull = session.currentParticipants >= session.maxParticipants;
   const capacityPct = session.maxParticipants > 0
     ? Math.min((session.currentParticipants / session.maxParticipants) * 100, 100)
     : 0;
 
   return (
-    <div className="rounded-2xl border border-gray-200/80 dark:border-border-dark/60 bg-white dark:bg-card-dark/30 shadow-sm dark:shadow-none hover:border-emerald-500/40 dark:hover:border-primary/20 hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-primary/5 transition-all duration-300 flex flex-col justify-between h-[230px] p-5 group">
-      {/* Top section: Badge and Action Menu */}
+    <div className="rounded-2xl border border-gray-200/80 dark:border-border-dark/60 bg-white dark:bg-card-dark/30 shadow-sm dark:shadow-none hover:border-emerald-500/40 dark:hover:border-primary/20 hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-primary/5 transition-all duration-300 flex flex-col justify-between p-5 group">
+      {/* Top section: Sport badge and Action Menu */}
       <div className="flex items-center justify-between">
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badge.classes} font-label`}>
-          {badge.label}
+        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 font-label">
+          {session.sportName || 'Badminton'}
         </span>
-        <button className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:hover:text-white dark:hover:bg-white/5 transition-all cursor-pointer">
-          <MoreVertical className="h-4.5 w-4.5" />
-        </button>
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setShowMenu(prev => !prev)}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:hover:text-white dark:hover:bg-white/5 transition-all cursor-pointer"
+          >
+            <MoreVertical className="h-4.5 w-4.5" />
+          </button>
+          {showMenu && isLeader && (
+            <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-card-dark border border-gray-200 dark:border-border-dark rounded-xl shadow-lg z-20 py-1 animate-fade-in">
+              <button
+                onClick={() => {
+                  setShowMenu(false);
+                  onDelete?.();
+                }}
+                disabled={isDeleting}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer font-label"
+              >
+                {isDeleting ? (
+                  <div className="h-4 w-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+                {isDeleting ? 'Đang xóa...' : 'Xóa lịch trình'}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Middle section: Title and Schedule */}
@@ -89,12 +124,12 @@ export default function SessionCard({ session, onManage }) {
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
             <MapPin className="h-4 w-4 text-emerald-600/70 dark:text-primary/70 shrink-0" />
-            <span className="font-label truncate">{session.location || 'Chưa xác định'}</span>
+            <span className="font-label truncate">{session.facilityName || session.courtName || 'Chưa xác định'}</span>
           </div>
         </div>
       </div>
 
-      {/* Bottom section: Capacity Bar and Member Avatars */}
+      {/* Capacity section */}
       <div className="space-y-3 mt-3">
         {/* Capacity Bar Header */}
         <div className="flex items-center justify-between text-xs font-label">
@@ -114,34 +149,52 @@ export default function SessionCard({ session, onManage }) {
           />
         </div>
 
-        {/* Card Footer: Overlapping Avatars and Manage Link */}
+        {/* Card Footer: Vote button (left) and Manage link (right) */}
         <div className="flex items-center justify-between pt-1">
-          <div className="flex -space-x-2">
-            {Array.from({ length: Math.min(session.currentParticipants || 0, 3) }).map((_, i) => (
-              <div
-                key={i}
-                className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 border-2 border-white dark:border-[#1E293B] flex items-center justify-center text-[10px] font-bold text-white shadow-sm"
+          {/* Vote buttons - left side */}
+          <div>
+            {hasJoined ? (
+              <button
+                onClick={() => onVoteLeave?.(session.scheduleId)}
+                disabled={isVoting}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20 dark:hover:bg-red-500/20 transition-all cursor-pointer font-label disabled:opacity-50"
               >
-                {String.fromCharCode(65 + i)}
-              </div>
-            ))}
-            {(session.currentParticipants || 0) > 3 && (
-              <div className="h-7 w-7 rounded-full bg-gray-100 dark:bg-border-dark border-2 border-white dark:border-[#1E293B] flex items-center justify-center text-[10px] font-bold text-gray-500 dark:text-gray-400 shadow-sm">
-                +{(session.currentParticipants || 0) - 3}
-              </div>
-            )}
-            {(session.currentParticipants || 0) === 0 && (
-              <div className="text-xs text-gray-400 font-label italic">Trống</div>
+                {isVoting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <UserMinus className="h-3.5 w-3.5" />
+                )}
+                Hủy tham gia
+              </button>
+            ) : (
+              <button
+                onClick={() => onVoteJoin?.(session.scheduleId)}
+                disabled={isVoting || isFull}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer font-label disabled:opacity-50 disabled:cursor-not-allowed ${isFull
+                    ? 'bg-gray-100 text-gray-400 border border-gray-200 dark:bg-white/5 dark:text-gray-500 dark:border-border-dark/40'
+                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 dark:hover:bg-emerald-500/20'
+                  }`}
+              >
+                {isVoting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <UserPlus className="h-3.5 w-3.5" />
+                )}
+                {isFull ? 'Đã đầy' : 'Tham gia'}
+              </button>
             )}
           </div>
 
-          <button
-            onClick={() => onManage && onManage(session.scheduleId)}
-            className="text-xs font-bold text-emerald-600 dark:text-primary hover:text-emerald-800 dark:hover:text-primary-dark transition-all duration-200 font-label cursor-pointer flex items-center gap-0.5 hover:gap-1"
-          >
-            Manage
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
+          {/* Manage - right side (for leader to view participants) */}
+          {isLeader && (
+            <button
+              onClick={() => onManage && onManage(session.scheduleId)}
+              className="text-xs font-bold text-emerald-600 dark:text-primary hover:text-emerald-800 dark:hover:text-primary-dark transition-all duration-200 font-label cursor-pointer flex items-center gap-0.5 hover:gap-1"
+            >
+              Quản lý
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
     </div>

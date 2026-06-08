@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -20,9 +20,13 @@ import {
   Phone,
 } from 'lucide-react';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { useTeamDetail, useTeamMembers, useRemoveMember, useCreateInvite } from '../hooks/useGroups';
+import { useTeamDetail, useTeamMembers, useRemoveMember, useCreateInvite, useTeamSchedules, useDeleteSchedule, useAddScheduleParticipant, useRemoveScheduleParticipant } from '../hooks/useGroups';
+import { getScheduleParticipantsAPI } from '../api/groups.api.js';
 import MemberCard from '../components/MemberCard';
 import TeamChat from '../components/TeamChat';
+import SessionCard from '../components/SessionCard';
+import CreateScheduleModal from '../components/CreateScheduleModal';
+import ParticipantsModal from '../components/ParticipantsModal';
 import Sidebar from '../../../components/layout/Sidebar';
 import { getUserIdAPI } from '../../Auth/api/auth.api.js';
 
@@ -127,17 +131,83 @@ export default function TeamManagementPage() {
 
   const { team, isLoading: teamLoading } = useTeamDetail(teamId);
   const { members, isLoading: membersLoading, refetch: refetchMembers } = useTeamMembers(teamId);
+  const { schedules, isLoading: schedulesLoading, refetch: refetchSchedules } = useTeamSchedules(teamId);
   const { removeMember, isLoading: isRemoving } = useRemoveMember();
+  const { deleteSchedule, isLoading: isDeletingSchedule } = useDeleteSchedule();
+  const { addParticipant } = useAddScheduleParticipant();
+  const { removeParticipant } = useRemoveScheduleParticipant();
   const { createInvite } = useCreateInvite();
 
   const [activeTab, setActiveTab] = useState('members');
   const [removingMember, setRemovingMember] = useState(null);
   const [showInviteSuccess, setShowInviteSuccess] = useState(false);
+  const [showCreateSchedule, setShowCreateSchedule] = useState(false);
+  const [scheduleModalKey, setScheduleModalKey] = useState(0);
+  const [deletingScheduleId, setDeletingScheduleId] = useState(null);
+  const [votingScheduleId, setVotingScheduleId] = useState(null);
+  const [joinedScheduleIds, setJoinedScheduleIds] = useState(new Set());
+  const [manageSchedule, setManageSchedule] = useState(null); // full schedule object
   const [inviteLink, setInviteLink] = useState('');
   const [viewingProfileMember, setViewingProfileMember] = useState(null);
   const [profileDetails, setProfileDetails] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState(null);
+
+  // Load which schedules the current user has joined
+  const currentUserId = localStorage.getItem('userId');
+  useEffect(() => {
+    if (!schedules || schedules.length === 0 || !currentUserId) return;
+    let cancelled = false;
+    const loadParticipation = async () => {
+      const joined = new Set();
+      await Promise.allSettled(
+        schedules.map(async (s) => {
+          try {
+            const res = await getScheduleParticipantsAPI(s.scheduleId);
+            const data = res?.data ?? res;
+            const list = Array.isArray(data) ? data : [];
+            if (list.some(p => String(p.userId) === String(currentUserId))) {
+              joined.add(s.scheduleId);
+            }
+          } catch { /* ignore */ }
+        })
+      );
+      if (!cancelled) setJoinedScheduleIds(joined);
+    };
+    loadParticipation();
+    return () => { cancelled = true; };
+  }, [schedules, currentUserId]);
+
+  // Vote handlers
+  const handleVoteJoin = async (scheduleId) => {
+    try {
+      setVotingScheduleId(scheduleId);
+      await addParticipant(scheduleId);
+      setJoinedScheduleIds(prev => new Set(prev).add(scheduleId));
+      refetchSchedules();
+    } catch (err) {
+      alert(err || 'Không thể tham gia.');
+    } finally {
+      setVotingScheduleId(null);
+    }
+  };
+
+  const handleVoteLeave = async (scheduleId) => {
+    try {
+      setVotingScheduleId(scheduleId);
+      await removeParticipant(scheduleId);
+      setJoinedScheduleIds(prev => {
+        const next = new Set(prev);
+        next.delete(scheduleId);
+        return next;
+      });
+      refetchSchedules();
+    } catch (err) {
+      alert(err || 'Không thể hủy tham gia.');
+    } finally {
+      setVotingScheduleId(null);
+    }
+  };
 
   const handleViewProfile = async (member) => {
     setViewingProfileMember(member);
@@ -198,8 +268,11 @@ export default function TeamManagementPage() {
   const contentTabs = [
     { id: 'members', label: 'Tất cả thành viên' },
     { id: 'chat', label: 'Trò chuyện' },
-    { id: 'matchmaking', label: 'Bắt kèo' },
+    { id: 'schedule', label: 'Lịch Chơi' },
   ];
+
+  // Helper: check if current user is Leader
+  const isLeader = members.some(m => String(m.userId) === String(currentUserId) && m.roleName === 'Leader');
 
   // Loading
   if ((teamLoading || membersLoading) && members.length === 0) {
@@ -322,13 +395,69 @@ export default function TeamManagementPage() {
               </div>
             )}
 
-            {activeTab === 'matchmaking' && (
-              <div className="text-center py-20 bg-white dark:bg-card-dark/10 rounded-2xl border border-gray-200/80 dark:border-border-dark/60 p-8 space-y-4 max-w-lg mx-auto">
-                <Swords className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto" />
-                <h3 className="text-base font-bold text-gray-900 dark:text-white font-display">Tính năng đang phát triển</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-label">
-                  Bắt kèo sẽ sớm được ra mắt.
-                </p>
+            {activeTab === 'schedule' && (
+              <div className="animate-fade-in space-y-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white font-display">Lịch trình nhóm</h3>
+                    <p className="text-sm text-gray-500 font-label">Xem và tham gia các buổi chơi của nhóm.</p>
+                  </div>
+                  {isLeader && (
+                    <button
+                      onClick={() => {
+                        setScheduleModalKey(prev => prev + 1);
+                        setShowCreateSchedule(true);
+                      }}
+                      className="px-4 py-2 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all font-label flex items-center gap-2 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Tạo lịch trình
+                    </button>
+                  )}
+                </div>
+
+                {schedulesLoading ? (
+                  <div className="text-center py-20">
+                    <div className="h-8 w-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin mx-auto mb-4" />
+                    <p className="text-sm text-gray-500">Đang tải lịch trình...</p>
+                  </div>
+                ) : schedules.length === 0 ? (
+                  <div className="text-center py-20 bg-white dark:bg-card-dark/10 rounded-2xl border border-gray-200/80 dark:border-border-dark/60 p-8 space-y-4">
+                    <CalendarDays className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto" />
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white font-display">Chưa có lịch trình nào</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-label">
+                      {isLeader ? 'Nhấn nút tạo lịch trình ở góc trên để bắt đầu giao lưu.' : 'Đợi trưởng nhóm tạo kèo giao lưu nhé.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {schedules.map(schedule => (
+                      <SessionCard
+                        key={schedule.scheduleId}
+                        session={schedule}
+                        isLeader={isLeader}
+                        isDeleting={deletingScheduleId === schedule.scheduleId}
+                        hasJoined={joinedScheduleIds.has(schedule.scheduleId)}
+                        isVoting={votingScheduleId === schedule.scheduleId}
+                        onVoteJoin={handleVoteJoin}
+                        onVoteLeave={handleVoteLeave}
+                        onDelete={async () => {
+                          if (!window.confirm('Bạn có chắc muốn xóa lịch trình này?')) return;
+                          try {
+                            setDeletingScheduleId(schedule.scheduleId);
+                            await deleteSchedule(schedule.scheduleId);
+                            refetchSchedules();
+                          } catch (err) {
+                            alert(err || 'Không thể xóa lịch trình.');
+                          } finally {
+                            setDeletingScheduleId(null);
+                          }
+                        }}
+                        onManage={() => setManageSchedule(schedule)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -566,6 +695,28 @@ export default function TeamManagementPage() {
           </div>
         </div>
       )}
+
+      {/* Create Schedule Modal */}
+      <CreateScheduleModal
+        key={scheduleModalKey}
+        isOpen={showCreateSchedule}
+        onClose={() => setShowCreateSchedule(false)}
+        teamId={teamId}
+        onSuccess={() => {
+          refetchSchedules();
+        }}
+      />
+
+      {/* Participants Modal (Manage) */}
+      <ParticipantsModal
+        isOpen={!!manageSchedule}
+        onClose={() => setManageSchedule(null)}
+        schedule={manageSchedule}
+        onSuccess={() => {
+          refetchSchedules();
+        }}
+      />
+
     </div>
   );
 }
