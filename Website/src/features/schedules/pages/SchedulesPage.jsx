@@ -11,7 +11,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 export default function SchedulesPage() {
   const navigate = useNavigate();
   const { theme } = useTheme();
-  
+
   const [schedules, setSchedules] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [joinedScheduleIds, setJoinedScheduleIds] = useState(new Set());
@@ -78,7 +78,7 @@ export default function SchedulesPage() {
           try {
             const schedRes = await getTeamSchedulesAPI(teamId);
             const teamSchedules = schedRes?.data ?? [];
-            
+
             // For each schedule, check if user is a participant
             await Promise.allSettled(
               teamSchedules.map(async (schedule) => {
@@ -159,7 +159,7 @@ export default function SchedulesPage() {
       <Sidebar activeMenu="sessions" />
 
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-screen overflow-y-auto custom-scrollbar relative">
-        
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>

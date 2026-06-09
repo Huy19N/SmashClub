@@ -23,12 +23,12 @@ export default function Sidebar({ onCreateGroup, activeMenu = 'teams' }) {
   const { user, isLoading } = useGetUserId();
 
   const sidebarItems = [
-    { id: 'Dashboard', label: 'Bảng điều khiển', icon: LayoutDashboard },
+    { id: 'dashboard', label: 'Bảng thống kê', icon: LayoutDashboard },
     { id: 'teams', label: 'Quản lý Nhóm', icon: Users, path: '/groups' },
-    { id: 'Bookings', label: 'Đặt sân', icon: CalendarDays, path: '/bookings' },
+    { id: 'bookings', label: 'Đặt sân', icon: CalendarDays, path: '/bookings' },
     { id: 'sessions', label: 'Lịch chơi', icon: CalendarDays, path: '/schedules' },
-    { id: 'finance', label: 'Tài chính', icon: DollarSign },
-    { id: 'profile', label: 'Cá nhân', icon: UserCircle },
+    // { id: 'finance', label: 'Tài chính', icon: DollarSign },
+    { id: 'profile', label: 'Cá nhân', icon: UserCircle, path: '/profile' },
   ];
 
   return (

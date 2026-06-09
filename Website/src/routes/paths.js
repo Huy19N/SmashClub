@@ -17,5 +17,6 @@ export const PATHS = {
   GROUP_INVITE: '/groups/invite/:token',
   LOGIN: '/login',
   REGISTER: '/register',
+  PROFILE: '/profile',
   NOT_FOUND: '*',
 };

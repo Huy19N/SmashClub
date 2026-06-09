@@ -20,6 +20,7 @@ const TeamManagementPage = lazy(() => import('../features/groups/pages/TeamManag
 const JoinGroupPage = lazy(() => import('../features/groups/pages/JoinGroupPage'));
 const BookingsPage = lazy(() => import('../features/bookings/pages/BookingsPage'));
 const SchedulesPage = lazy(() => import('../features/schedules/pages/SchedulesPage'));
+const ProfilePage = lazy(() => import('../features/profiles/pages/ProfilePage'));
 
 /**
  * Global Routing Registry
@@ -77,6 +78,10 @@ export const router = createBrowserRouter([
   {
     path: PATHS.SCHEDULES,
     element: <ProtectedRoute><SchedulesPage /></ProtectedRoute>
+  },
+  {
+    path: PATHS.PROFILE,
+    element: <ProtectedRoute><ProfilePage /></ProtectedRoute>
   },
   {
     element: <AuthLayout />,

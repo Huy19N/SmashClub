@@ -215,15 +215,6 @@ export default function BookingModal({ isOpen, onClose, facility }) {
     const slotStartMin = timeToMinutes(TIME_SLOTS[slotIdx]);
     const slotEndMin = timeToMinutes(TIME_SLOTS[slotIdx + 1]);
 
-    // Check if slot is in the past for today's date
-    const now = new Date();
-    if (selectedDate.getFullYear() === now.getFullYear() &&
-        selectedDate.getMonth() === now.getMonth() &&
-        selectedDate.getDate() === now.getDate()) {
-      const currentMin = now.getHours() * 60 + now.getMinutes();
-      if (slotStartMin < currentMin) return 'locked'; // Past slots are locked
-    }
-
     const courtBookings = getBookingsForCourt(courtId);
     for (const b of courtBookings) {
       const bStart = b.startTime.split('T')[1]?.substring(0, 5);
@@ -378,7 +369,7 @@ export default function BookingModal({ isOpen, onClose, facility }) {
       toast.success(`Đặt sân thành công! (${groups.length} lượt)`);
       onClose();
     } catch (err) {
-      toast.error('Có lỗi xảy ra: ' + (err?.response?.data?.message || err?.message || 'Unknown'));
+      toast.error('Có lỗi xảy ra: ' + (err?.message || 'Unknown'));
     }
   };
 
@@ -390,7 +381,7 @@ export default function BookingModal({ isOpen, onClose, facility }) {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
       <div
         className="bg-white dark:bg-card-dark w-full max-w-[95vw] 2xl:max-w-screen-2xl shadow-2xl overflow-hidden flex flex-col rounded-t-3xl sm:rounded-3xl"
-        style={{ maxHeight: '96vh', height: '90vh' }}
+        style={{ maxHeight: '96 vh', height: '90vh' }}
         onMouseUp={handleMouseUp}
       >
         {/* Header */}
