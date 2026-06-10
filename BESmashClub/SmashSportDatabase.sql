@@ -517,32 +517,6 @@ CREATE TABLE PayoutRequests (
 -- ==========================================
 -- 11. PAYMENT TRANSACTIONS MODULE
 -- ==========================================
-CREATE TABLE PayoutStatuses ( 
-    StatusId INT NOT NULL,
-    StatusName NVARCHAR(50) NOT NULL,
-    CONSTRAINT PK_PayoutStatuses PRIMARY KEY (StatusId)
-);
-
-CREATE TABLE Payouts (
-    PayoutId UNIQUEIDENTIFIER DEFAULT NEWID(),
-    PaymentId UNIQUEIDENTIFIER NOT NULL,
-    FacilityId INT NOT NULL,
-    OwnerUserId UNIQUEIDENTIFIER NOT NULL,
-    Amount DECIMAL(18,2) NOT NULL,
-    StatusId INT NOT NULL DEFAULT 1,
-    BankAccountNo NVARCHAR(50),
-    BankName NVARCHAR(100),
-    AccountHolder NVARCHAR(255),
-    CreatedAt DATETIME DEFAULT GETDATE(),
-    CompletedAt DATETIME,
-    Note NVARCHAR(500),
-    CONSTRAINT PK_Payouts PRIMARY KEY (PayoutId),
-    CONSTRAINT FK_Payouts_Payments FOREIGN KEY (PaymentId) REFERENCES Payments(PaymentId),
-    CONSTRAINT FK_Payouts_Facilities FOREIGN KEY (FacilityId) REFERENCES Facilities(FacilityId),
-    CONSTRAINT FK_Payouts_Users FOREIGN KEY (OwnerUserId) REFERENCES Users(UserId),
-    CONSTRAINT FK_Payouts_PayoutStatuses FOREIGN KEY (StatusId) REFERENCES PayoutStatuses(StatusId)
-);
-
 CREATE TABLE PaymentStatuses ( 
     StatusId INT NOT NULL,
     StatusName NVARCHAR(50) NOT NULL,
@@ -575,6 +549,32 @@ CREATE TABLE Payments (
     CONSTRAINT FK_Payments_FacilityConfigs FOREIGN KEY (FacilityConfigId) REFERENCES FacilityPaymentConfigs(ConfigId),
     CONSTRAINT CK_Payments_Method CHECK (PaymentMethod IN ('Cash', 'BankTransfer', 'Internal', 'Gateway')),
     CONSTRAINT CK_Payments_Type CHECK (PaymentType IN ('Booking', 'Subscription'))
+);
+
+CREATE TABLE PayoutStatuses ( 
+    StatusId INT NOT NULL,
+    StatusName NVARCHAR(50) NOT NULL,
+    CONSTRAINT PK_PayoutStatuses PRIMARY KEY (StatusId)
+);
+
+CREATE TABLE Payouts (
+    PayoutId UNIQUEIDENTIFIER DEFAULT NEWID(),
+    PaymentId UNIQUEIDENTIFIER NOT NULL,
+    FacilityId INT NOT NULL,
+    OwnerUserId UNIQUEIDENTIFIER NOT NULL,
+    Amount DECIMAL(18,2) NOT NULL,
+    StatusId INT NOT NULL DEFAULT 1,
+    BankAccountNo NVARCHAR(50),
+    BankName NVARCHAR(100),
+    AccountHolder NVARCHAR(255),
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    CompletedAt DATETIME,
+    Note NVARCHAR(500),
+    CONSTRAINT PK_Payouts PRIMARY KEY (PayoutId),
+    CONSTRAINT FK_Payouts_Payments FOREIGN KEY (PaymentId) REFERENCES Payments(PaymentId),
+    CONSTRAINT FK_Payouts_Facilities FOREIGN KEY (FacilityId) REFERENCES Facilities(FacilityId),
+    CONSTRAINT FK_Payouts_Users FOREIGN KEY (OwnerUserId) REFERENCES Users(UserId),
+    CONSTRAINT FK_Payouts_PayoutStatuses FOREIGN KEY (StatusId) REFERENCES PayoutStatuses(StatusId)
 );
 GO
 
