@@ -64,7 +64,9 @@ export default function CourtsManagementPage() {
     deleteCourt,
     fetchCourtCosts,
     createCourtCost,
-    updateCourtCost
+    updateCourtCost,
+    updateCourtAll,
+    updateFacilityHours
   } = useCourtsManagement();
 
   // Active tab: 'list' | 'add-court' | 'add-facility'
@@ -77,16 +79,24 @@ export default function CourtsManagementPage() {
   const [facAddress, setFacAddress] = useState('');
   const [facLatitude, setFacLatitude] = useState(10.762622); // Default to HCMC
   const [facLongitude, setFacLongitude] = useState(106.660172);
+  const [operatingHours, setOperatingHours] = useState([
+    { dayOfWeek: 2, label: 'Thứ 2', isOpen: true, openTime: '05:00', closeTime: '23:00' },
+    { dayOfWeek: 3, label: 'Thứ 3', isOpen: true, openTime: '05:00', closeTime: '23:00' },
+    { dayOfWeek: 4, label: 'Thứ 4', isOpen: true, openTime: '05:00', closeTime: '23:00' },
+    { dayOfWeek: 5, label: 'Thứ 5', isOpen: true, openTime: '05:00', closeTime: '23:00' },
+    { dayOfWeek: 6, label: 'Thứ 6', isOpen: true, openTime: '05:00', closeTime: '23:00' },
+    { dayOfWeek: 7, label: 'Thứ 7', isOpen: true, openTime: '05:00', closeTime: '23:00' },
+    { dayOfWeek: 8, label: 'Chủ Nhật', isOpen: true, openTime: '05:00', closeTime: '23:00' }
+  ]);
   const [isSubmittingFacility, setIsSubmittingFacility] = useState(false);
   const [facilityFormError, setFacilityFormError] = useState('');
 
   // Add court form state
   const [courtNameInput, setCourtNameInput] = useState('');
   const [courtSportId, setCourtSportId] = useState('');
-  const [courtStartTime, setCourtStartTime] = useState('06:00:00');
-  const [courtEndTime, setCourtEndTime] = useState('22:00:00');
-  const [courtDuration, setCourtDuration] = useState('60');
-  const [courtCostValue, setCourtCostValue] = useState('');
+  const [courtCosts, setCourtCosts] = useState([
+    { id: Date.now(), startTime: '00:00:00', endTime: '23:59:00', durationMinutes: '60', cost: '' }
+  ]);
   const [isSubmittingCourt, setIsSubmittingCourt] = useState(false);
   const [courtFormError, setCourtFormError] = useState('');
 
@@ -96,11 +106,7 @@ export default function CourtsManagementPage() {
   const [editSportId, setEditSportId] = useState('');
   const [editStatusId, setEditStatusId] = useState('');
   const [editIsActive, setEditIsActive] = useState(true);
-  const [editStartTime, setEditStartTime] = useState('06:00:00');
-  const [editEndTime, setEditEndTime] = useState('22:00:00');
-  const [editDuration, setEditDuration] = useState('60');
-  const [editCostValue, setEditCostValue] = useState('');
-  const [editingCourtCost, setEditingCourtCost] = useState(null);
+  const [editCosts, setEditCosts] = useState([]);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [editError, setEditError] = useState('');
 
@@ -114,7 +120,7 @@ export default function CourtsManagementPage() {
     }
     setIsSubmittingFacility(true);
     try {
-      await createFacility({
+      const newFacility = await createFacility({
         name: facName,
         city: facCity,
         district: facDistrict,
@@ -122,10 +128,25 @@ export default function CourtsManagementPage() {
         latitude: facLatitude,
         longitude: facLongitude
       });
+
+      // Lấy dữ liệu 7 ngày để cập nhật thông qua updateFacilityHours
+      const hoursData = operatingHours
+        .filter(h => h.isOpen)
+        .map(h => ({
+          dayOfWeek: h.dayOfWeek,
+          openTime: h.openTime.substring(0, 5), // Lấy đúng định dạng HH:mm
+          closeTime: h.closeTime.substring(0, 5) // Lấy đúng định dạng HH:mm
+        }));
+      
+      if (hoursData.length > 0) {
+        await updateFacilityHours(newFacility.facilityId, hoursData);
+      }
+
       setFacName('');
       setFacCity('');
       setFacDistrict('');
       setFacAddress('');
+      setOperatingHours(prev => prev.map(h => ({ ...h, isOpen: true, openTime: '05:00', closeTime: '23:00' })));
       setActiveTab('list');
     } catch (err) {
       const backendMessage = err.response?.data?.message || err.response?.data?.title || err.message;
@@ -154,25 +175,25 @@ export default function CourtsManagementPage() {
         courtName: courtNameInput
       });
 
-      if (courtCostValue) {
+      const validCosts = courtCosts.filter(c => c.cost !== '' && c.cost !== null);
+      if (validCosts.length > 0) {
         const formatTime = (t) => t && t.length === 5 ? `${t}:00` : t;
-        await createCourtCost(newCourt.courtId, {
-           courtId: newCourt.courtId,
-           startTime: formatTime(courtStartTime),
-           endTime: formatTime(courtEndTime),
-           durationMinutes: parseInt(courtDuration),
-           cost: parseFloat(courtCostValue)
-        });
+        const bulkData = validCosts.map(c => ({
+           startTime: formatTime(c.startTime),
+           endTime: formatTime(c.endTime),
+           durationMinutes: parseInt(c.durationMinutes),
+           cost: parseFloat(c.cost)
+        }));
+        await updateCourtAll(newCourt.courtId, bulkData);
       }
 
       setCourtNameInput('');
       setCourtSportId('');
-      setCourtStartTime('06:00:00');
-      setCourtEndTime('22:00:00');
-      setCourtCostValue('');
+      setCourtCosts([{ id: Date.now(), startTime: '00:00:00', endTime: '23:59:00', durationMinutes: '60', cost: '' }]);
       setActiveTab('list');
     } catch (err) {
-      setCourtFormError(err.message || 'Lỗi khi tạo sân.');
+      const backendMessage = err.response?.data?.message || err.response?.data?.title || err.message;
+      setCourtFormError(backendMessage || 'Lỗi khi tạo sân.');
     } finally {
       setIsSubmittingCourt(false);
     }
@@ -186,24 +207,24 @@ export default function CourtsManagementPage() {
     setEditStatusId(court.statusId);
     setEditIsActive(court.isActive);
     setEditError('');
-    setEditStartTime('06:00:00');
-    setEditEndTime('22:00:00');
-    setEditDuration('60');
-    setEditCostValue('');
-    setEditingCourtCost(null);
+    setEditCosts([]);
 
     try {
       const costs = await fetchCourtCosts(court.courtId);
       if (costs && costs.length > 0) {
-        const activeCost = costs[0];
-        setEditingCourtCost(activeCost.courtCostId);
-        setEditStartTime(activeCost.startTime || '06:00:00');
-        setEditEndTime(activeCost.endTime || '22:00:00');
-        setEditDuration(activeCost.durationMinutes ? activeCost.durationMinutes.toString() : '60');
-        setEditCostValue(activeCost.cost ? activeCost.cost.toString() : '');
+        setEditCosts(costs.map(c => ({
+          id: c.courtCostId || Date.now() + Math.random(),
+          startTime: c.startTime || '00:00:00',
+          endTime: c.endTime || '23:59:00',
+          durationMinutes: c.durationMinutes ? c.durationMinutes.toString() : '60',
+          cost: c.cost ? c.cost.toString() : ''
+        })));
+      } else {
+        setEditCosts([{ id: Date.now(), startTime: '00:00:00', endTime: '23:59:00', durationMinutes: '60', cost: '' }]);
       }
     } catch (e) {
       console.warn("Could not load court costs", e);
+      setEditCosts([{ id: Date.now(), startTime: '00:00:00', endTime: '23:59:00', durationMinutes: '60', cost: '' }]);
     }
   };
 
@@ -217,6 +238,21 @@ export default function CourtsManagementPage() {
     }
     setIsSavingEdit(true);
     try {
+      const validCosts = editCosts.filter(c => c.cost !== '' && c.cost !== null);
+      if (validCosts.length > 0) {
+        const formatTime = (t) => t && t.length === 5 ? `${t}:00` : t;
+        const bulkData = validCosts.map(c => ({
+          startTime: formatTime(c.startTime),
+          endTime: formatTime(c.endTime),
+          durationMinutes: parseInt(c.durationMinutes),
+          cost: parseFloat(c.cost),
+          isActive: true
+        }));
+        await updateCourtAll(editingCourt.courtId, bulkData);
+      } else {
+        await updateCourtAll(editingCourt.courtId, []); // Xóa tất cả nếu rỗng
+      }
+
       await updateCourt(editingCourt.courtId, {
         courtName: editName,
         sportId: parseInt(editSportId),
@@ -224,27 +260,10 @@ export default function CourtsManagementPage() {
         isActive: editIsActive
       });
 
-      if (editCostValue) {
-        const formatTime = (t) => t && t.length === 5 ? `${t}:00` : t;
-        const costData = {
-          startTime: formatTime(editStartTime),
-          endTime: formatTime(editEndTime),
-          durationMinutes: parseInt(editDuration),
-          cost: parseFloat(editCostValue),
-          isActive: editIsActive
-        };
-        if (editingCourtCost) {
-           await updateCourtCost(editingCourtCost, costData);
-        } else {
-           costData.courtId = editingCourt.courtId;
-           delete costData.isActive; // Create request doesn't accept isActive
-           await createCourtCost(editingCourt.courtId, costData);
-        }
-      }
-
       setEditingCourt(null);
     } catch (err) {
-      setEditError(err.message || 'Lỗi khi lưu thay đổi sân.');
+      const backendMessage = err.response?.data?.message || err.response?.data?.title || err.message;
+      setEditError(backendMessage || 'Lỗi khi lưu thay đổi sân.');
     } finally {
       setIsSavingEdit(false);
     }
@@ -414,6 +433,62 @@ export default function CourtsManagementPage() {
                 />
               </div>
 
+              {/* Cấu hình giờ hoạt động 7 ngày */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 font-label mb-2">
+                  Giờ hoạt động
+                </label>
+                <div className="border border-gray-200 dark:border-border-dark rounded-xl overflow-hidden divide-y divide-gray-100 dark:divide-white/5">
+                  {operatingHours.map((h, i) => (
+                    <div key={h.dayOfWeek} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-white dark:bg-card-dark gap-3">
+                      <div className="flex items-center gap-3 min-w-[100px]">
+                        <input
+                          type="checkbox"
+                          checked={h.isOpen}
+                          onChange={(e) => {
+                            const newHours = [...operatingHours];
+                            newHours[i].isOpen = e.target.checked;
+                            setOperatingHours(newHours);
+                          }}
+                          className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 cursor-pointer"
+                        />
+                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                          {h.label}
+                        </span>
+                      </div>
+                      
+                      {h.isOpen ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            value={h.openTime}
+                            onChange={(e) => {
+                              const newHours = [...operatingHours];
+                              newHours[i].openTime = e.target.value;
+                              setOperatingHours(newHours);
+                            }}
+                            className="px-2 py-1.5 rounded-lg border border-gray-200 dark:border-border-dark text-xs bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white cursor-text focus:outline-none focus:border-emerald-500"
+                          />
+                          <span className="text-gray-400 text-xs font-bold">-</span>
+                          <input
+                            type="time"
+                            value={h.closeTime}
+                            onChange={(e) => {
+                              const newHours = [...operatingHours];
+                              newHours[i].closeTime = e.target.value;
+                              setOperatingHours(newHours);
+                            }}
+                            className="px-2 py-1.5 rounded-lg border border-gray-200 dark:border-border-dark text-xs bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white cursor-text focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex-1 text-right text-xs text-red-500 italic px-2 font-bold font-label">Đóng cửa</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Map Selection (chỉ hiển thị tham khảo vị trí) */}
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 font-label mb-1.5 flex justify-between">
@@ -526,61 +601,81 @@ export default function CourtsManagementPage() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 font-label mb-1.5">
-                    Giờ mở cửa <span className="text-red-500">*</span>
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 font-label">
+                    Bảng giá theo khung giờ <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="time"
-                    required
-                    value={courtStartTime}
-                    onChange={(e) => setCourtStartTime(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-border-dark text-sm bg-transparent text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 font-label transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 font-label mb-1.5">
-                    Giờ đóng cửa <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="time"
-                    required
-                    value={courtEndTime}
-                    onChange={(e) => setCourtEndTime(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-border-dark text-sm bg-transparent text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 font-label transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 font-label mb-1.5">
-                    Block thời gian <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    required
-                    value={courtDuration}
-                    onChange={(e) => setCourtDuration(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-border-dark bg-white dark:bg-card-dark text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 font-label text-sm transition-colors"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCourtCosts([...courtCosts, { id: Date.now(), startTime: '00:00:00', endTime: '23:59:00', durationMinutes: '60', cost: '' }]);
+                    }}
+                    className="text-xs font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 transition-colors flex items-center gap-1 cursor-pointer"
                   >
-                    <option value="30">30 phút</option>
-                    <option value="60">60 phút (1 giờ)</option>
-                  </select>
+                    <Plus className="w-3.5 h-3.5" /> Thêm khung giờ
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 font-label mb-1.5">
-                    Giá tiền (VNĐ) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    placeholder="VD: 100000"
-                    value={courtCostValue}
-                    onChange={(e) => setCourtCostValue(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-border-dark text-sm bg-transparent text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 font-label transition-colors"
-                  />
+                
+                <div className="space-y-3">
+                  {courtCosts.map((c, index) => (
+                    <div key={c.id} className="p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-border-dark/60 rounded-xl relative group">
+                      {courtCosts.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newCosts = [...courtCosts];
+                            newCosts.splice(index, 1);
+                            setCourtCosts(newCosts);
+                          }}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-border-dark rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-200 shadow-sm transition-all cursor-pointer z-10"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Giờ bắt đầu</label>
+                          <input
+                            type="time" required value={c.startTime}
+                            onChange={(e) => { const newCosts = [...courtCosts]; newCosts[index].startTime = e.target.value; setCourtCosts(newCosts); }}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-border-dark text-xs bg-white dark:bg-card-dark text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Giờ kết thúc</label>
+                          <input
+                            type="time" required value={c.endTime}
+                            onChange={(e) => { const newCosts = [...courtCosts]; newCosts[index].endTime = e.target.value; setCourtCosts(newCosts); }}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-border-dark text-xs bg-white dark:bg-card-dark text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Block (phút)</label>
+                          <select
+                            required value={c.durationMinutes}
+                            onChange={(e) => { const newCosts = [...courtCosts]; newCosts[index].durationMinutes = e.target.value; setCourtCosts(newCosts); }}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-border-dark bg-white dark:bg-card-dark text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 text-xs"
+                          >
+                            <option value="30">30</option>
+                            <option value="60">60</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Giá tiền (VNĐ)</label>
+                          <input
+                            type="number" required min="0" placeholder="VD: 100000" value={c.cost}
+                            onChange={(e) => { const newCosts = [...courtCosts]; newCosts[index].cost = e.target.value; setCourtCosts(newCosts); }}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-border-dark text-xs bg-white dark:bg-card-dark text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -826,57 +921,81 @@ export default function CourtsManagementPage() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 font-label mb-1.5">
-                    Giờ mở cửa
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 font-label">
+                    Bảng giá theo khung giờ
                   </label>
-                  <input
-                    type="time"
-                    value={editStartTime}
-                    onChange={(e) => setEditStartTime(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-border-dark text-sm bg-transparent text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 font-label transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 font-label mb-1.5">
-                    Giờ đóng cửa
-                  </label>
-                  <input
-                    type="time"
-                    value={editEndTime}
-                    onChange={(e) => setEditEndTime(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-border-dark text-sm bg-transparent text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 font-label transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 font-label mb-1.5">
-                    Block thời gian
-                  </label>
-                  <select
-                    value={editDuration}
-                    onChange={(e) => setEditDuration(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-border-dark bg-white dark:bg-card-dark text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 font-label text-sm transition-colors"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditCosts([...editCosts, { id: Date.now(), startTime: '00:00:00', endTime: '23:59:00', durationMinutes: '60', cost: '' }]);
+                    }}
+                    className="text-xs font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 transition-colors flex items-center gap-1 cursor-pointer"
                   >
-                    <option value="30">30 phút</option>
-                    <option value="60">60 phút (1 giờ)</option>
-                  </select>
+                    <Plus className="w-3.5 h-3.5" /> Thêm khung giờ
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 font-label mb-1.5">
-                    Giá tiền (VNĐ)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="VD: 100000"
-                    value={editCostValue}
-                    onChange={(e) => setEditCostValue(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-border-dark text-sm bg-transparent text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 font-label transition-colors"
-                  />
+                
+                <div className="space-y-3 max-h-[30vh] overflow-y-auto pr-2 custom-scrollbar">
+                  {editCosts.map((c, index) => (
+                    <div key={c.id} className="p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-border-dark/60 rounded-xl relative group">
+                      {editCosts.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newCosts = [...editCosts];
+                            newCosts.splice(index, 1);
+                            setEditCosts(newCosts);
+                          }}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-border-dark rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-200 shadow-sm transition-all cursor-pointer z-10"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Giờ bắt đầu</label>
+                          <input
+                            type="time" required value={c.startTime}
+                            onChange={(e) => { const newCosts = [...editCosts]; newCosts[index].startTime = e.target.value; setEditCosts(newCosts); }}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-border-dark text-xs bg-white dark:bg-card-dark text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Giờ kết thúc</label>
+                          <input
+                            type="time" required value={c.endTime}
+                            onChange={(e) => { const newCosts = [...editCosts]; newCosts[index].endTime = e.target.value; setEditCosts(newCosts); }}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-border-dark text-xs bg-white dark:bg-card-dark text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Block (phút)</label>
+                          <select
+                            required value={c.durationMinutes}
+                            onChange={(e) => { const newCosts = [...editCosts]; newCosts[index].durationMinutes = e.target.value; setEditCosts(newCosts); }}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-border-dark bg-white dark:bg-card-dark text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 text-xs"
+                          >
+                            <option value="30">30</option>
+                            <option value="60">60</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">Giá tiền (VNĐ)</label>
+                          <input
+                            type="number" required min="0" placeholder="VD: 100000" value={c.cost}
+                            onChange={(e) => { const newCosts = [...editCosts]; newCosts[index].cost = e.target.value; setEditCosts(newCosts); }}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-border-dark text-xs bg-white dark:bg-card-dark text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 

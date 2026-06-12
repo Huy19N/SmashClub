@@ -11,7 +11,9 @@ import {
   getCourtCostsAPI,
   createCourtCostAPI,
   updateCourtCostAPI,
-  deleteCourtCostAPI
+  deleteCourtCostAPI,
+  updateFacilityOperatingHoursAPI,
+  updateCourtAllAPI
 } from '../api/courtsManagement.api';
 
 export const useCourtsManagement = () => {
@@ -20,7 +22,7 @@ export const useCourtsManagement = () => {
   const [courts, setCourts] = useState([]);
   const [sports, setSports] = useState([]);
   const [courtStatuses, setCourtStatuses] = useState([]);
-  
+
   const [isLoadingFacilities, setIsLoadingFacilities] = useState(false);
   const [isLoadingCourts, setIsLoadingCourts] = useState(false);
   const [isLoadingSports, setIsLoadingSports] = useState(false);
@@ -122,6 +124,17 @@ export const useCourtsManagement = () => {
     }
   };
 
+  // Update Facility Operating Hours
+  const updateFacilityHours = async (facilityId, hoursData) => {
+    try {
+      const res = await updateFacilityOperatingHoursAPI(facilityId, hoursData);
+      return res?.data ?? res;
+    } catch (err) {
+      console.error('Lỗi khi cập nhật giờ hoạt động cơ sở:', err);
+      throw err;
+    }
+  };
+
   // Create court
   const createCourt = async (courtData) => {
     if (!selectedFacilityId) throw new Error('Vui lòng chọn cơ sở trước.');
@@ -195,6 +208,16 @@ export const useCourtsManagement = () => {
     }
   };
 
+  const updateCourtAll = async (courtId, costsData) => {
+    try {
+      const res = await updateCourtAllAPI(courtId, costsData);
+      return res?.data ?? res;
+    } catch (err) {
+      console.error('Lỗi khi cập nhật toàn bộ thông tin sân:', err);
+      throw err;
+    }
+  };
+
   const deleteCourtCost = async (courtCostId) => {
     try {
       await deleteCourtCostAPI(courtCostId);
@@ -226,7 +249,9 @@ export const useCourtsManagement = () => {
     fetchCourtCosts,
     createCourtCost,
     updateCourtCost,
-    deleteCourtCost
+    updateCourtAll,
+    deleteCourtCost,
+    updateFacilityHours
   };
 };
 export default useCourtsManagement;

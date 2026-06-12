@@ -101,6 +101,11 @@ export const updateFacilityAPI = async (facilityId, facilityData) => {
     return response.data;
 }
 
+export const getFacilityOperatingHoursAPI = async (facilityId) => {
+    const response = await api.get(`/facilities/${facilityId}/operating-hours`);
+    return response.data;
+}
+
 // -Sports CRUD-
 
 export const getAllSportsAPI = async () => {

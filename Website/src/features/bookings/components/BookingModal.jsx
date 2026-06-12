@@ -1,27 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, MapPin, CalendarDays, ChevronLeft, ChevronRight, Clock, Info } from 'lucide-react';
 import Button from '../../../components/ui/Button';
-import { useCourt, useBookings } from '../hooks/useBookings';
+import { useCourt, useBookings, useFacility } from '../hooks/useBookings';
 import { getCourtCostByCourtIdAPI } from '../api/bookings.api';
 import { toast } from 'react-hot-toast';
 
-// Generate 30-min time labels from START_HOUR to END_HOUR
-const START_HOUR = 5;
-const END_HOUR = 23;
 const SLOT_MINUTES = 30;
-
-function generateTimeSlots() {
-  const slots = [];
-  for (let h = START_HOUR; h < END_HOUR; h++) {
-    slots.push(`${String(h).padStart(2, '0')}:00`);
-    slots.push(`${String(h).padStart(2, '0')}:30`);
-  }
-  slots.push(`${String(END_HOUR).padStart(2, '0')}:00`);
-  return slots;
-}
-
-const TIME_SLOTS = generateTimeSlots();
-const SLOT_COUNT = TIME_SLOTS.length - 1;
 
 function timeToMinutes(t) {
   const [h, m] = t.split(':').map(Number);
@@ -152,8 +136,12 @@ export default function BookingModal({ isOpen, onClose, facility }) {
   const dragCourtRef = useRef(null);
   const dragStartIdx = useRef(null);
 
+  const [operatingHours, setOperatingHours] = useState([]);
+  const [timeSlots, setTimeSlots] = useState([]);
+
   const { courts, fetchCourts, courtStatuses, fetchCourtStatus, loading: loadingCourts } = useCourt();
   const { createBooking, loading: bookingActionLoading } = useBookings();
+  const { fetchOperatingHours } = useFacility();
 
   const formatDateForApi = (date) => {
     const y = date.getFullYear();
@@ -168,8 +156,46 @@ export default function BookingModal({ isOpen, onClose, facility }) {
       const facId = facility.facilityId || facility.id;
       fetchCourts(facId);
       fetchCourtStatus(facId, selectedDateStr);
+      fetchOperatingHours(facId).then(hours => {
+        setOperatingHours(hours || []);
+      });
     }
-  }, [isOpen, facility, selectedDateStr, fetchCourts, fetchCourtStatus]);
+  }, [isOpen, facility, selectedDateStr, fetchCourts, fetchCourtStatus, fetchOperatingHours]);
+
+  useEffect(() => {
+    if (!operatingHours || operatingHours.length === 0) {
+      setTimeSlots([]);
+      return;
+    }
+    const jsDay = selectedDate.getDay();
+    const mappedDay = jsDay === 0 ? 8 : jsDay + 1;
+    const todayHours = operatingHours.find(h => h.dayOfWeek === mappedDay);
+    if (!todayHours) {
+      setTimeSlots([]);
+      return;
+    }
+    
+    const openParts = todayHours.openTime.split(':');
+    const closeParts = todayHours.closeTime.split(':');
+    const openH = parseInt(openParts[0], 10);
+    const openM = parseInt(openParts[1], 10);
+    const closeH = parseInt(closeParts[0], 10);
+    const closeM = parseInt(closeParts[1], 10);
+
+    const slots = [];
+    let currentH = openH;
+    let currentM = openM;
+    while (currentH < closeH || (currentH === closeH && currentM < closeM)) {
+      slots.push(`${String(currentH).padStart(2, '0')}:${String(currentM).padStart(2, '0')}`);
+      currentM += 30;
+      if (currentM >= 60) {
+        currentH++;
+        currentM -= 60;
+      }
+    }
+    slots.push(`${String(closeH).padStart(2, '0')}:${String(closeM).padStart(2, '0')}`);
+    setTimeSlots(slots);
+  }, [operatingHours, selectedDate]);
 
   useEffect(() => {
     setSelectedSlots([]);
@@ -190,11 +216,25 @@ export default function BookingModal({ isOpen, onClose, facility }) {
   if (!isOpen || !facility) return null;
 
   const getSlotStatus = (courtId, slotIdx) => {
-    const slotStartStr = TIME_SLOTS[slotIdx]; // "HH:mm"
+    if (!timeSlots || timeSlots.length === 0 || slotIdx >= timeSlots.length - 1) return 'locked';
+    const slotStartStr = timeSlots[slotIdx]; // "HH:mm"
     const courtStatus = courtStatuses?.find(c => c.courtId === courtId);
     if (!courtStatus || !courtStatus.isActive) return 'locked';
 
-    const slotData = courtStatus.timeSlots?.find(s => s.startTime === slotStartStr);
+    // Prevent booking in the past
+    const today = new Date();
+    const isToday = selectedDate.getFullYear() === today.getFullYear() && 
+                    selectedDate.getMonth() === today.getMonth() && 
+                    selectedDate.getDate() === today.getDate();
+    
+    if (isToday) {
+       const [h, m] = slotStartStr.split(':').map(Number);
+       const slotTime = new Date(selectedDate);
+       slotTime.setHours(h, m, 0, 0);
+       if (slotTime < today) return 'locked';
+    }
+
+    const slotData = courtStatus.timeSlots?.find(s => s.startTime === slotStartStr || s.startTime.startsWith(slotStartStr));
     if (!slotData) return 'locked';
     
     if (slotData.status === 'Booked') return 'booked';
@@ -203,11 +243,12 @@ export default function BookingModal({ isOpen, onClose, facility }) {
   };
 
   const getSlotCost = (courtId, slotIdx) => {
-    const slotStartStr = TIME_SLOTS[slotIdx];
+    if (!timeSlots || timeSlots.length === 0 || slotIdx >= timeSlots.length - 1) return 0;
+    const slotStartStr = timeSlots[slotIdx];
     const courtStatus = courtStatuses?.find(c => c.courtId === courtId);
     if (!courtStatus) return 0;
     
-    const slotData = courtStatus.timeSlots?.find(s => s.startTime === slotStartStr);
+    const slotData = courtStatus.timeSlots?.find(s => s.startTime === slotStartStr || s.startTime.startsWith(slotStartStr));
     return slotData ? slotData.cost : 0;
   };
 
@@ -327,8 +368,8 @@ export default function BookingModal({ isOpen, onClose, facility }) {
     }
     try {
       for (const g of groups) {
-        const startTime = `${selectedDateStr}T${TIME_SLOTS[g.startIdx]}:00`;
-        const endTime = `${selectedDateStr}T${TIME_SLOTS[g.endIdx + 1]}:00`;
+        const startTime = `${selectedDateStr}T${timeSlots[g.startIdx]}:00`;
+        const endTime = `${selectedDateStr}T${timeSlots[g.endIdx + 1]}:00`;
         await createBooking({ courtId: g.courtId, startTime, endTime });
       }
       toast.success(`Đặt sân thành công! (${groups.length} lượt)`);
@@ -434,6 +475,11 @@ export default function BookingModal({ isOpen, onClose, facility }) {
               <Clock className="w-10 h-10 mx-auto mb-3 text-gray-300" />
               <p className="text-sm">Không có sân nào trong cơ sở này.</p>
             </div>
+          ) : timeSlots.length === 0 ? (
+            <div className="text-center py-16 text-gray-400">
+              <Clock className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+              <p className="text-sm">Cơ sở không mở cửa vào ngày này. Vui lòng chọn ngày khác.</p>
+            </div>
           ) : (
             <div className="min-w-max">
               <table className="w-full border-collapse select-none">
@@ -442,7 +488,7 @@ export default function BookingModal({ isOpen, onClose, facility }) {
                     <th className="sticky left-0 z-20 bg-emerald-800 text-white text-xs font-bold px-4 py-4 border-r border-emerald-900 min-w-[160px] w-[160px] shadow-[2px_0_5px_rgba(0,0,0,0.1)]">
                       Sân
                     </th>
-                    {TIME_SLOTS.slice(0, SLOT_COUNT).map((t, idx) => (
+                    {timeSlots.length > 0 && timeSlots.slice(0, timeSlots.length - 1).map((t, idx) => (
                       <th key={idx} className="bg-emerald-700 text-emerald-50 text-[11px] font-semibold px-0 py-4 border-r border-emerald-800/50 min-w-[60px] w-[60px] text-center whitespace-nowrap">
                         {t}
                       </th>
@@ -457,13 +503,13 @@ export default function BookingModal({ isOpen, onClose, facility }) {
                           {court.courtName}
                         </div>
                       </td>
-                      {Array.from({ length: SLOT_COUNT }).map((_, slotIdx) => {
+                      {timeSlots.length > 0 && Array.from({ length: timeSlots.length - 1 }).map((_, slotIdx) => {
                         const status = getSlotStatus(court.courtId, slotIdx);
                         const sel = isSlotSelected(court.courtId, slotIdx);
 
                         // Check neighbors for rounded corners
                         const selLeft = slotIdx > 0 && isSlotSelected(court.courtId, slotIdx - 1);
-                        const selRight = slotIdx < SLOT_COUNT - 1 && isSlotSelected(court.courtId, slotIdx + 1);
+                        const selRight = slotIdx < timeSlots.length - 2 && isSlotSelected(court.courtId, slotIdx + 1);
 
                         let bgClass = '';
                         let cursor = 'cursor-pointer';
@@ -528,7 +574,7 @@ export default function BookingModal({ isOpen, onClose, facility }) {
                 <div className="flex flex-col gap-0.5">
                   {groups.map((g, i) => (
                     <p key={i} className="text-[11px] font-semibold text-emerald-100">
-                      {courts.find(c => c.courtId === g.courtId)?.courtName}: {TIME_SLOTS[g.startIdx]} → {TIME_SLOTS[g.endIdx + 1]}
+                      {courts.find(c => c.courtId === g.courtId)?.courtName}: {timeSlots[g.startIdx]} → {timeSlots[g.endIdx + 1]}
                     </p>
                   ))}
                 </div>

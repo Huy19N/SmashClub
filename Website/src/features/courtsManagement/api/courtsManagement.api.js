@@ -12,6 +12,12 @@ export const createFacilityAPI = async (facilityData) => {
   return response.data;
 };
 
+/** Cập nhật giờ hoạt động của cơ sở (PUT /api/facilities/{facilityId}/operating-hours) */
+export const updateFacilityOperatingHoursAPI = async (facilityId, hoursData) => {
+  const response = await api.put(`/facilities/${facilityId}/operating-hours`, hoursData);
+  return response.data;
+};
+
 /** Lấy danh sách sân theo cơ sở (GET /api/facilities/{facilityId}/courts) */
 export const getCourtsByFacilityAPI = async (facilityId) => {
   const response = await api.get(`/facilities/${facilityId}/courts`);
@@ -65,6 +71,12 @@ export const createCourtCostAPI = async (courtId, costData) => {
 /** Cập nhật khung giờ & giá (PUT /api/court-costs/{courtCostId}) */
 export const updateCourtCostAPI = async (courtCostId, costData) => {
   const response = await api.put(`/court-costs/${courtCostId}`, costData);
+  return response.data;
+};
+
+/** Cập nhật toàn bộ bảng giá sân (PUT /api/courts/{courtId}/costs/bulk) */
+export const updateCourtAllAPI = async (courtId, costsData) => {
+  const response = await api.put(`/courts/${courtId}/costs/bulk`, costsData);
   return response.data;
 };
 

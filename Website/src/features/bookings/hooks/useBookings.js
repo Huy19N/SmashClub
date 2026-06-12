@@ -18,7 +18,8 @@ import {
     createFacilityAPI,
     updateFacilityAPI,
     getFilteredFacilitiesAPI,
-    getCourtStatusAPI
+    getCourtStatusAPI,
+    getFacilityOperatingHoursAPI
 } from '../api/bookings.api.js';
 
 
@@ -385,6 +386,20 @@ export const useFacility = () => {
         }
     }, [fetchFacilities]);
 
+    // Fetch operating hours
+    const fetchOperatingHours = useCallback(async (facilityId) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getFacilityOperatingHoursAPI(facilityId);
+            return response.data || response;
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     return {
         facilities,
         loading,
@@ -394,5 +409,6 @@ export const useFacility = () => {
         fetchFacilityById,
         createFacility,
         updateFacility,
+        fetchOperatingHours,
     };
 };
