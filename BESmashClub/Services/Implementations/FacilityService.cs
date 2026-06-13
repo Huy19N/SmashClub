@@ -410,6 +410,14 @@ public class FacilityService : IFacilityService
                 && b.StartTime < targetDate.AddDays(1))
             .ToListAsync();
 
+        // [OPTIMIZATION 1] Group bookings by CourtId to O(1) lookup
+        var bookingsByCourt = bookings.ToLookup(b => b.CourtId);
+
+        // [OPTIMIZATION 2] Fetch OperatingHours once outside the loop (Resolve N+1 Query)
+        var dayOfWeekInt = targetDate.DayOfWeek == DayOfWeek.Sunday ? 8 : (int)targetDate.DayOfWeek + 1;
+        var operatingHour = await context.Set<FacilityOperatingHour>()
+            .FirstOrDefaultAsync(oh => oh.FacilityId == facilityId && oh.DayOfWeek == dayOfWeekInt);
+
         var results = new List<CourtAvailabilityResponse>();
 
         foreach (var court in courts)
@@ -422,63 +430,87 @@ public class FacilityService : IFacilityService
                 IsActive = court.IsActive
             };
 
+            var courtBookings = bookingsByCourt[court.CourtId];
+
             if (court.CourtCosts != null && court.CourtCosts.Any())
             {
                 foreach (var cc in court.CourtCosts.Where(cc => cc.IsActive).OrderBy(x => x.StartTime))
                 {
-                    var startStr = cc.StartTime.ToString("HH:mm");
-                    var endStr = cc.EndTime.ToString("HH:mm");
-                    var slotStart = targetDate.Add(cc.StartTime.ToTimeSpan());
-                    var slotEnd = targetDate.Add(cc.EndTime.ToTimeSpan());
+                    // [OPTIMIZATION 3] Use TimeSpan to prevent Infinite Loop Wrap Around
+                    var currentSpan = cc.StartTime.ToTimeSpan();
+                    var endSpan = cc.EndTime.ToTimeSpan();
 
-                    var booking = bookings.FirstOrDefault(b => b.CourtId == court.CourtId && b.StartTime < slotEnd && b.EndTime > slotStart);
-
-                    string slotStatus = "Available";
-                    Guid? bookingId = null;
-                    string bookedByUser = null;
-
-                    if (court.StatusId == 2 || !court.IsActive)
+                    while (currentSpan < endSpan)
                     {
-                        slotStatus = "Maintenance";
+                        var nextSpan = currentSpan.Add(TimeSpan.FromMinutes(30));
+                        if (nextSpan > endSpan) nextSpan = endSpan;
+
+                        var startStr = $"{(int)currentSpan.TotalHours:00}:{currentSpan.Minutes:00}";
+                        var endStr = $"{(int)nextSpan.TotalHours:00}:{nextSpan.Minutes:00}";
+                        if (endStr == "24:00") endStr = "23:59";
+
+                        var slotStart = targetDate.Add(currentSpan);
+                        var slotEnd = targetDate.Add(nextSpan);
+
+                        var booking = courtBookings.FirstOrDefault(b => b.StartTime < slotEnd && b.EndTime > slotStart);
+
+                        string slotStatus = "Available";
+                        Guid? bookingId = null;
+                        string bookedByUser = null;
+
+                        if (court.StatusId == 2 || !court.IsActive)
+                        {
+                            slotStatus = "Maintenance";
+                        }
+                        else if (booking != null)
+                        {
+                            slotStatus = "Booked";
+                            bookingId = booking.BookingId;
+                            bookedByUser = booking.BookedByUser?.FullName ?? booking.CustomerNameOffline ?? "Đối tác đặt";
+                        }
+
+                        // Calculate cost proportionally
+                        var durationMinutes = (nextSpan - currentSpan).TotalMinutes;
+                        var costPerSlot = cc.Cost;
+                        if (cc.DurationMinutes > 0) 
+                        {
+                            costPerSlot = (cc.Cost / cc.DurationMinutes) * (decimal)durationMinutes;
+                        }
+
+                        courtResp.TimeSlots.Add(new TimeSlotStatus
+                        {
+                            StartTime = startStr,
+                            EndTime = endStr,
+                            Cost = costPerSlot,
+                            Status = slotStatus,
+                            BookingId = bookingId,
+                            BookedByUserName = bookedByUser
+                        });
+
+                        currentSpan = nextSpan;
                     }
-                    else if (booking != null)
-                    {
-                        slotStatus = "Booked";
-                        bookingId = booking.BookingId;
-                        bookedByUser = booking.BookedByUser?.FullName ?? booking.CustomerNameOffline ?? "Đối tác đặt";
-                    }
-
-                    courtResp.TimeSlots.Add(new TimeSlotStatus
-                    {
-                        StartTime = startStr,
-                        EndTime = endStr,
-                        Cost = cc.Cost,
-                        Status = slotStatus,
-                        BookingId = bookingId,
-                        BookedByUserName = bookedByUser
-                    });
                 }
             }
             else
             {
-                var dayOfWeekInt = targetDate.DayOfWeek == DayOfWeek.Sunday ? 8 : (int)targetDate.DayOfWeek + 1;
-                var operatingHour = await context.Set<FacilityOperatingHour>()
-                    .FirstOrDefaultAsync(oh => oh.FacilityId == facilityId && oh.DayOfWeek == dayOfWeekInt);
-
                 if (operatingHour != null)
                 {
-                    var current = operatingHour.OpenTime;
-                    while (current < operatingHour.CloseTime)
+                    var currentSpan = operatingHour.OpenTime.ToTimeSpan();
+                    var endSpan = operatingHour.CloseTime.ToTimeSpan();
+
+                    while (currentSpan < endSpan)
                     {
-                        var next = current.AddHours(1);
-                        if (next > operatingHour.CloseTime) next = operatingHour.CloseTime;
+                        var nextSpan = currentSpan.Add(TimeSpan.FromMinutes(30));
+                        if (nextSpan > endSpan) nextSpan = endSpan;
 
-                        var startStr = current.ToString("HH:mm");
-                        var endStr = next.ToString("HH:mm");
-                        var slotStart = targetDate.Add(current.ToTimeSpan());
-                        var slotEnd = targetDate.Add(next.ToTimeSpan());
+                        var startStr = $"{(int)currentSpan.TotalHours:00}:{currentSpan.Minutes:00}";
+                        var endStr = $"{(int)nextSpan.TotalHours:00}:{nextSpan.Minutes:00}";
+                        if (endStr == "24:00") endStr = "23:59";
 
-                        var booking = bookings.FirstOrDefault(b => b.CourtId == court.CourtId && b.StartTime < slotEnd && b.EndTime > slotStart);
+                        var slotStart = targetDate.Add(currentSpan);
+                        var slotEnd = targetDate.Add(nextSpan);
+
+                        var booking = courtBookings.FirstOrDefault(b => b.StartTime < slotEnd && b.EndTime > slotStart);
 
                         string slotStatus = "Available";
                         Guid? bookingId = null;
@@ -505,7 +537,7 @@ public class FacilityService : IFacilityService
                             BookedByUserName = bookedByUser
                         });
 
-                        current = next;
+                        currentSpan = nextSpan;
                     }
                 }
             }
