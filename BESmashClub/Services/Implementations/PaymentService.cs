@@ -175,8 +175,8 @@ public class PaymentService : IPaymentService
 
         // Chia đôi chi phí đặt sân
         var splitAmount = (booking.TotalCost ?? 0) / 2;
-        if (splitAmount <= 0)
-            throw new InvalidOperationException("Số tiền chia đôi không hợp lệ.");
+        if (splitAmount < 2000)
+            throw new InvalidOperationException("Số tiền chia đôi phải từ 2,000 VNĐ trở lên để thanh toán qua cổng PayOS.");
 
         // Kiểm tra xem đã có giao dịch đang chờ nào chưa
         var existingPayment = await _unitOfWork.Payments.GetByReferenceIdAsync(
@@ -473,11 +473,33 @@ public class PaymentService : IPaymentService
     }
 
     /// <summary>
-    /// PayOS description has a max length of 25 characters
+    /// PayOS description has a max length of 25 characters and allows only basic ASCII
     /// </summary>
     private static string TruncateDescription(string description)
     {
-        return description.Length > 25 ? description[..25] : description;
+        var normalized = RemoveDiacritics(description);
+        var clean = System.Text.RegularExpressions.Regex.Replace(normalized, @"[^a-zA-Z0-9\s]", "");
+        return clean.Length > 25 ? clean[..25] : clean;
+    }
+
+    private static string RemoveDiacritics(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return text;
+        
+        var normalizedString = text.Normalize(System.Text.NormalizationForm.FormD);
+        var stringBuilder = new System.Text.StringBuilder(capacity: normalizedString.Length);
+
+        for (int i = 0; i < normalizedString.Length; i++)
+        {
+            char c = normalizedString[i];
+            var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+            if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+            {
+                stringBuilder.Append(c);
+            }
+        }
+
+        return stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC).Replace("Đ", "D").Replace("đ", "d");
     }
 
     private static PaymentResponse MapToResponse(Payment p)
