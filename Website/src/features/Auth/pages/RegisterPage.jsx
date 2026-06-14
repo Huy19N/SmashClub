@@ -59,8 +59,8 @@ export default function RegisterPage() {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-3">
-        <h1 className="text-4xl font-bold font-display tracking-tight text-white transition-colors duration-500">Tham Gia SmashClub</h1>
-        <p className="text-lg text-gray-300 transition-colors duration-500">Tạo tài khoản của bạn ngay hôm nay</p>
+        <h1 className="text-4xl font-black font-display tracking-tight text-gray-900 dark:text-white transition-colors duration-500">Tham Gia SmashClub</h1>
+        <p className="text-lg text-gray-600 dark:text-gray-300 transition-colors duration-500">Tạo tài khoản của bạn ngay hôm nay</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -106,15 +106,15 @@ export default function RegisterPage() {
           required
         />
 
-        <Button type="submit" className="w-full mt-2" isLoading={isLoading}>
+        <Button type="submit" className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20 transform transition hover:-translate-y-0.5 rounded-xl" isLoading={isLoading}>
           Tạo tài khoản
         </Button>
       </form>
 
-      <div className="text-center">
-        <p className="text-sm text-gray-300 transition-colors">
+      <div className="text-center pt-2">
+        <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">
           Bạn đã có tài khoản?{' '}
-          <Link to={PATHS.LOGIN} className="text-primary hover:text-primary-dark font-bold transition-colors">
+          <Link to={PATHS.LOGIN} className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-extrabold transition-colors">
             Đăng nhập
           </Link>
         </p>

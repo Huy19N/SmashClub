@@ -43,52 +43,64 @@ const plans = [
 
 export default function PremiumSection() {
   return (
-    <section id="premium-section" className="relative w-full bg-[#0b0f19] py-24 z-20 font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6 font-display drop-shadow-md">Gói Hội Viên</h2>
-          <p className="text-gray-300 max-w-2xl mx-auto text-lg leading-relaxed">
-            Choose the perfect plan to match your passion and playing frequency. Unlock exclusive benefits and join our elite community.
+    <section id="premium-section" className="relative w-full bg-white dark:bg-[#0b0f19] py-32 z-20 font-sans overflow-hidden transition-colors duration-500">
+      {/* Dynamic Background Orbs */}
+      <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-emerald-400/10 dark:bg-emerald-500/10 rounded-full mix-blend-screen filter blur-[100px] animate-pulse-slow pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[30rem] h-[30rem] bg-emerald-200/20 dark:bg-emerald-300/10 rounded-full mix-blend-screen filter blur-[120px] animate-pulse-slow pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-20">
+          <span className="inline-block py-1 px-3.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-4 border border-emerald-200 dark:border-emerald-800/50">Nâng tầm trải nghiệm</span>
+          <h2 className="text-4xl sm:text-6xl font-black text-gray-900 dark:text-white mb-6 font-display drop-shadow-sm tracking-tight">Gói Hội Viên</h2>
+          <p className="text-slate-600 dark:text-gray-300 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed font-sans">
+            Chọn gói hội viên phù hợp với đam mê và tần suất thi đấu của bạn. Mở khóa các đặc quyền cao cấp và gia nhập cộng đồng của chúng tôi.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto items-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
           {plans.map((plan, index) => (
             <div
               key={plan.name}
-              className={`relative bg-[#151921] rounded-xl p-8 flex flex-col h-full transition-transform duration-300 hover:-translate-y-2
-                ${plan.isPopular ? 'border-2 border-primary shadow-[0_0_30px_rgba(34,197,94,0.15)] md:scale-105 z-10' : 'border border-white/5'}
+              className={`relative glass-panel-hover rounded-3xl p-8 sm:p-10 flex flex-col h-full border border-slate-200/60 dark:border-white/10
+                ${plan.isPopular ? 'border-2 border-emerald-500/50 dark:border-emerald-500/50 shadow-[0_20px_50px_-12px_rgba(16,185,129,0.2)] md:scale-105 z-10' : 'shadow-lg'}
               `}
             >
               {plan.isPopular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-[#052e14] font-bold text-xs px-4 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap">
-                  Most Popular
+                <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-[#052e14] dark:text-white shadow-lg shadow-emerald-500/30 font-extrabold text-xs px-5 py-2 rounded-full uppercase tracking-widest whitespace-nowrap">
+                  Phổ biến nhất
                 </div>
               )}
 
               <div className="mb-8">
-                <h3 className="text-2xl font-bold text-white mb-4">{plan.name}</h3>
+                <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">{plan.name}</h3>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-white">{plan.price}</span>
-                  {plan.currency && <span className="text-lg text-gray-400 ml-1">{plan.currency}</span>}
-                  <span className="text-sm text-gray-500">{plan.period}</span>
+                  <span className="text-5xl font-extrabold text-slate-900 dark:text-white tracking-tighter">{plan.price}</span>
+                  {plan.currency && <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400 ml-1">{plan.currency}</span>}
+                  <span className="text-sm font-semibold text-slate-500 ml-1">{plan.period}</span>
                 </div>
               </div>
 
-              <div className="flex-1 space-y-4 mb-8">
+              <div className="flex-1 space-y-5 mb-10 mt-4">
                 {plan.features.map((feature, i) => (
-                  <div key={i} className="flex items-start gap-3">
+                  <div key={i} className="flex items-start gap-4">
                     <div className="mt-1 flex-shrink-0">
-                      <div className="h-4 w-4 rounded-full border border-primary flex items-center justify-center">
-                        <Check className="h-2.5 w-2.5 text-primary" strokeWidth={3} />
+                      <div className="h-5 w-5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
+                        <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" strokeWidth={4} />
                       </div>
                     </div>
-                    <span className="text-gray-300 text-sm leading-tight">{feature}</span>
+                    <span className="text-slate-700 dark:text-gray-300 text-sm leading-relaxed font-medium">{feature}</span>
                   </div>
                 ))}
               </div>
 
-              <button className="w-full bg-primary hover:bg-primary-dark text-[#052e14] font-bold py-3 px-4 rounded-lg transition-colors duration-200">
+              <button
+                className={`w-full font-extrabold py-4 px-4 rounded-full transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer text-sm tracking-wider uppercase
+                  ${plan.isPopular 
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-[#052e14] dark:text-white shadow-lg shadow-emerald-500/20' 
+                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10'
+                  }
+                `}
+              >
                 {plan.buttonText}
               </button>
             </div>

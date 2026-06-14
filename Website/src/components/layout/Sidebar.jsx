@@ -25,8 +25,15 @@ export default function Sidebar({ onCreateGroup, activeMenu = 'teams' }) {
   // Role from API response (primary) or JWT-decoded localStorage (fallback)
   const roleId = user?.data?.roleId?.toString() || localStorage.getItem('roleId');
   const isFacilityOwner = roleId === '3';
+  const isAdmin = roleId === '1';
 
-  const sidebarItems = isFacilityOwner ? [
+  const sidebarItems = isAdmin ? [
+    { id: 'dashboard', label: 'Bảng thống kê', icon: LayoutDashboard, path: '/admin/dashboard' },
+    { id: 'users', label: 'Quản lý User', icon: Users, path: '/admin/users' },
+    { id: 'facilities', label: 'Quản lý Chủ sân', icon: CalendarDays, path: '/admin/facilities' },
+    { id: 'payouts', label: 'Yêu cầu rút tiền', icon: DollarSign, path: '/admin/payouts' },
+    { id: 'profile', label: 'Cá nhân', icon: UserCircle, path: '/admin/profile' },
+  ] : isFacilityOwner ? [
     { id: 'dashboard', label: 'Bảng thống kê', icon: LayoutDashboard, path: '/dashboard' },
     { id: 'courts-management', label: 'Quản lý sân', icon: Settings, path: '/courts-management' },
     { id: 'profile', label: 'Cá nhân', icon: UserCircle, path: '/profile' },
@@ -87,7 +94,7 @@ export default function Sidebar({ onCreateGroup, activeMenu = 'teams' }) {
         </div>
 
         {/* "+ New Session/Team" Button */}
-        {!isFacilityOwner && (
+        {!isFacilityOwner && !isAdmin && (
           <div className="px-4 py-4">
             <button
               onClick={() => onCreateGroup && onCreateGroup()}

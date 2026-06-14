@@ -261,7 +261,7 @@ export default function BookingsPage() {
                   fetchFacilities();
                 }}
                 variant="outline"
-                className="shrink-0 flex items-center gap-2 px-8 py-3.5 rounded-full text-base border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                className="shrink-0 flex items-center gap-2 px-8 py-3.5 rounded-full text-base font-bold bg-white/50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm"
               >
                 <List size={20} />
                 <span>Xem dạng danh sách</span>
@@ -285,7 +285,7 @@ export default function BookingsPage() {
               <div className="flex-1 flex flex-col gap-4 h-full min-h-[300px]">
 
                 {/* Map Area */}
-                <div className="flex-1 bg-white dark:bg-card-dark border border-gray-100 dark:border-border-dark rounded-2xl overflow-hidden shadow-sm relative z-0 h-full">
+                <div className="flex-1 glass-panel rounded-3xl overflow-hidden shadow-xl relative z-0 h-full border border-white/20">
                   <MapContainer
                     center={userLocation ? [userLocation.lat, userLocation.lng] : [10.762622, 106.660172]}
                     zoom={userLocation ? 13 : 11}
@@ -357,7 +357,7 @@ export default function BookingsPage() {
                 </div>
 
                 {/* Map Bottom Filter Bar */}
-                <div className="bg-white dark:bg-card-dark border border-gray-100 dark:border-border-dark rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm flex-wrap shrink-0">
+                <div className="glass-panel rounded-3xl p-4 sm:p-6 flex items-center justify-between gap-4 shadow-lg flex-wrap shrink-0 border border-white/20">
                   <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 flex-wrap">
 
                     {/* Date Picker */}
@@ -366,7 +366,7 @@ export default function BookingsPage() {
                         type="date"
                         value={mapFilterDate}
                         onChange={(e) => setMapFilterDate(e.target.value)}
-                        className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl pl-3 pr-3 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none hover:border-gray-300 transition-colors"
+                        className="bg-gray-50/80 dark:bg-gray-800/50 border-none text-gray-700 dark:text-gray-300 rounded-full pl-4 pr-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-emerald-500/30 outline-none hover:bg-white transition-colors shadow-inner"
                       />
                     </div>
 
@@ -392,7 +392,7 @@ export default function BookingsPage() {
                       <select
                         value={mapFilterSportId}
                         onChange={(e) => setMapFilterSportId(e.target.value)}
-                        className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl pl-4 pr-10 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none appearance-none min-w-[140px] cursor-pointer hover:border-gray-300 transition-colors"
+                        className="bg-gray-50/80 dark:bg-gray-800/50 border-none text-gray-700 dark:text-gray-300 rounded-full pl-5 pr-10 py-3 text-sm font-semibold focus:ring-2 focus:ring-emerald-500/30 outline-none appearance-none min-w-[140px] cursor-pointer hover:bg-white transition-colors shadow-inner"
                       >
                         <option value="">Tất cả môn</option>
                         {sports.map((sport) => (
@@ -409,7 +409,7 @@ export default function BookingsPage() {
                     {/* Search submission */}
                     <button
                       onClick={handleMapSearch}
-                      className="bg-emerald-500 text-white p-2.5 rounded-xl hover:bg-emerald-600 transition-colors font-bold shadow-sm shadow-emerald-500/10 flex items-center justify-center"
+                      className="bg-emerald-500 text-white p-3 rounded-full hover:bg-emerald-600 transition-transform transform hover:scale-105 font-bold shadow-lg shadow-emerald-500/30 flex items-center justify-center"
                     >
                       <Search size={18} />
                     </button>
@@ -418,7 +418,7 @@ export default function BookingsPage() {
               </div>
 
               {/* Right Sidebar: Suggestions or detail card */}
-              <div className="w-full lg:w-[380px] bg-white dark:bg-card-dark border border-gray-100 dark:border-border-dark rounded-2xl p-6 flex flex-col shadow-sm overflow-hidden h-full">
+              <div className="w-full lg:w-[380px] glass-panel rounded-3xl p-6 sm:p-8 flex flex-col shadow-xl overflow-hidden h-full border border-white/20">
                 {selectedMapFacility ? (
                   // Detail mode
                   <div className="flex flex-col h-full justify-between overflow-y-auto space-y-6">
@@ -459,7 +459,7 @@ export default function BookingsPage() {
                         </p>
                       </div>
 
-                      <div className="bg-gray-50 dark:bg-gray-800/40 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3">
+                      <div className="bg-gray-50/50 dark:bg-gray-800/30 p-5 rounded-2xl border border-gray-100/50 dark:border-gray-700/30 space-y-4 backdrop-blur-sm">
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-500">Số lượng sân:</span>
                           <span className="font-semibold text-gray-700 dark:text-gray-300">{selectedMapFacility.courtCount || 0} sân</span>
@@ -560,7 +560,7 @@ export default function BookingsPage() {
             /* ------------------- GRID / LIST VIEW (STANDARD) ------------------- */
             <>
               {/* Filters Bar */}
-              <div className="bg-white dark:bg-card-dark border border-gray-100 dark:border-border-dark rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+              <div className="glass-panel rounded-3xl p-4 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg border border-white/20">
                 <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 flex-wrap">
                   <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 font-bold text-[13px] tracking-wider shrink-0 ml-2">
                     <Filter size={16} />
@@ -572,7 +572,7 @@ export default function BookingsPage() {
                     <select
                       value={filterSportId}
                       onChange={(e) => setFilterSportId(e.target.value)}
-                      className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl pl-4 pr-10 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none appearance-none min-w-[140px] cursor-pointer hover:border-gray-300 transition-colors"
+                      className="bg-gray-50/80 dark:bg-gray-800/50 border-none text-gray-700 dark:text-gray-300 rounded-full pl-5 pr-10 py-3 text-sm font-semibold focus:ring-2 focus:ring-emerald-500/30 outline-none appearance-none min-w-[140px] cursor-pointer hover:bg-white transition-colors shadow-inner"
                     >
                       <option value="">Tất cả môn</option>
                       {sports.map((sport) => (
@@ -592,7 +592,7 @@ export default function BookingsPage() {
                     placeholder="Thành phố..."
                     value={filterCity}
                     onChange={(e) => setFilterCity(e.target.value)}
-                    className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none w-40 hover:border-gray-300 transition-colors"
+                    className="bg-gray-50/80 dark:bg-gray-800/50 border-none text-gray-700 dark:text-gray-300 rounded-full px-5 py-3 text-sm font-semibold focus:ring-2 focus:ring-emerald-500/30 outline-none w-40 hover:bg-white transition-colors shadow-inner"
                   />
 
                   {/* District Text input */}
@@ -601,7 +601,7 @@ export default function BookingsPage() {
                     placeholder="Quận/Huyện..."
                     value={filterDistrict}
                     onChange={(e) => setFilterDistrict(e.target.value)}
-                    className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none w-40 hover:border-gray-300 transition-colors"
+                    className="bg-gray-50/80 dark:bg-gray-800/50 border-none text-gray-700 dark:text-gray-300 rounded-full px-5 py-3 text-sm font-semibold focus:ring-2 focus:ring-emerald-500/30 outline-none w-40 hover:bg-white transition-colors shadow-inner"
                   />
 
                   <button

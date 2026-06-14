@@ -1,0 +1,175 @@
+import { useState, useEffect } from 'react';
+import {
+  Search,
+  Filter,
+  UserCheck,
+  UserX,
+  AlertCircle
+} from 'lucide-react';
+import { useAdminUsers } from '../hooks/useAdmin';
+import toast from 'react-hot-toast';
+export default function UserManagement() {
+  const { users, isLoading, fetchUsers, changeRole, toggleStatus } = useAdminUsers();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const roles = [
+    { id: 1, name: 'Admin' },
+    { id: 2, name: 'User' },
+    { id: 3, name: 'FacilityOwner' }
+  ];
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Handle role change
+  const handleRoleChange = async (userId, newRoleId) => {
+    await changeRole(userId, newRoleId, roles);
+  };
+
+  // Handle status toggle
+  const handleToggleStatus = async (userId) => {
+    await toggleStatus(userId);
+  };
+  // Search & filter filtering logic
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = (user.fullName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (user.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (user.phoneNumber || '').includes(searchQuery);
+    const matchesRole = roleFilter === 'all' || user.roleId.toString() === roleFilter;
+    return matchesSearch && matchesRole;
+  });
+  return (
+    <div className="space-y-6 animate-fadeIn">
+      {/* Title */}
+      <div>
+        <h1 className="text-2xl font-extrabold font-display leading-tight dark:text-white">Quản Lý Người Dùng</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Xem danh sách, phân quyền và khóa/mở khóa tài khoản thành viên.</p>
+      </div>
+      {/* Search & Filter Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center glass-panel p-4 sm:p-6 rounded-3xl shadow-lg border border-white/20 w-full mb-6">
+        {/* Search */}
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Tìm theo tên, email, sđt..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:border-emerald-500 dark:focus:border-primary transition-colors dark:text-white"
+          />
+        </div>
+        {/* Filter */}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Filter className="w-4 h-4 text-gray-400" />
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="px-3 py-2 text-sm bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:border-emerald-500 dark:focus:border-primary transition-colors dark:text-white cursor-pointer"
+          >
+            <option value="all" className="dark:bg-[#0b0f19] dark:text-white">Tất cả quyền</option>
+            <option value="1" className="dark:bg-[#0b0f19] dark:text-white">Admin</option>
+            <option value="2" className="dark:bg-[#0b0f19] dark:text-white">User (Người chơi)</option>
+            <option value="3" className="dark:bg-[#0b0f19] dark:text-white">FacilityOwner (Chủ sân)</option>
+          </select>
+        </div>
+      </div>
+      {/* Users Table */}
+      <div className="glass-panel p-6 sm:p-8 rounded-3xl shadow-xl border border-white/20">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-500"></div>
+          </div>
+        ) : filteredUsers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+            <AlertCircle className="w-12 h-12 mb-3 text-amber-500/80 animate-bounce" />
+            <p>Không tìm thấy người dùng nào phù hợp.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-separate border-spacing-y-3 text-left">
+              <thead>
+                <tr className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-label px-4">
+                  <th className="py-3 px-4">Thông tin cá nhân</th>
+                  <th className="py-3 px-4">Số điện thoại</th>
+                  <th className="py-3 px-4">Vai trò (Role)</th>
+                  <th className="py-3 px-4">Ngày tham gia</th>
+                  <th className="py-3 px-4 text-center">Trạng thái</th>
+                  <th className="py-3 px-4 text-center">Hành động</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-sm">
+                {filteredUsers.map((u) => (
+                  <tr key={u.userId} className="bg-white/60 dark:bg-gray-800/40 hover:bg-white dark:hover:bg-gray-700/60 transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-1 rounded-2xl group">
+                    <td className="py-4 px-5 rounded-l-2xl">
+                      <p className="font-extrabold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">{u.fullName}</p>
+                      <p className="text-xs text-gray-500 font-medium">{u.email}</p>
+                    </td>
+                    <td className="py-3.5 px-4 text-gray-700 dark:text-gray-300">
+                      {u.phoneNumber || <span className="text-gray-400 italic">Chưa cập nhật</span>}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <select
+                        value={u.roleId}
+                        onChange={(e) => handleRoleChange(u.userId, parseInt(e.target.value))}
+                        className="px-2.5 py-1 text-xs bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg focus:outline-none focus:border-emerald-500 dark:focus:border-primary transition-colors cursor-pointer dark:text-white"
+                      >
+                        {roles.map(r => (
+                          <option key={r.id} value={r.id} className="dark:bg-[#0b0f19] dark:text-white">
+                            {r.name}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="py-3.5 px-4 text-gray-600 dark:text-gray-400">
+                      {new Date(u.createdAt).toLocaleDateString('vi-VN')}
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold font-label uppercase ${u.isActive
+                        ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                        : 'bg-red-500/10 text-red-600 border border-red-500/20'
+                        }`}>
+                        {u.isActive ? (
+                          <>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                            Hoạt động
+                          </>
+                        ) : (
+                          <>
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            Đang khóa
+                          </>
+                        )}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <button
+                        onClick={() => handleToggleStatus(u.userId)}
+                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold font-label cursor-pointer active:scale-95 transition-all border ${u.isActive
+                          ? 'bg-red-500/10 text-red-600 hover:bg-red-500/25 border-red-500/20'
+                          : 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/25 border-emerald-500/20'
+                          }`}
+                      >
+                        {u.isActive ? (
+                          <>
+                            <UserX className="w-3.5 h-3.5" />
+                            Khóa
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck className="w-3.5 h-3.5" />
+                            Kích hoạt
+                          </>
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

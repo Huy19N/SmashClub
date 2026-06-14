@@ -32,6 +32,7 @@ export default function Navbar() {
 
   const roleId = apiUser?.data?.roleId?.toString() || user?.roleId || localStorage.getItem('roleId');
   const isFacilityOwner = roleId === '3';
+  const isAdmin = roleId === '1';
 
   const isHomePage = location.pathname === PATHS.HOME;
 
@@ -82,11 +83,8 @@ export default function Navbar() {
   // If on HomePage and NOT scrolled, it's transparent.
   // Otherwise, it's the solid glass-panel.
   const headerClasses = isHomePage
-    ? `fixed top-0 left-0 w-full z-50 transition-all duration-500 font-label ${isScrolled
-      ? 'bg-[#0b0f19]/80 backdrop-blur-md border-b border-border-dark/60 py-3 shadow-lg shadow-black/40'
-      : 'bg-transparent border-b border-transparent py-5'
-    }`
-    : `sticky top-0 z-50 bg-[#0b0f19]/80 backdrop-blur-md border-b border-border-dark py-3 shadow-lg shadow-black/40 font-label w-full transition-all duration-300`;
+    ? `fixed w-full top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 dark:bg-[#0b0f19]/90 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 shadow-lg py-4' : 'bg-transparent py-6'}`
+    : `sticky top-0 z-50 bg-white dark:bg-[#0b0f19]/90 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 py-3 shadow-lg font-label w-full transition-all duration-300`;
 
   return (
     <header className={headerClasses}>
@@ -94,11 +92,11 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to={PATHS.HOME} className="flex items-center gap-2 group">
-            <div className="bg-primary/20 p-2 rounded-lg border border-primary/30 group-hover:border-primary group-hover:bg-primary/30 transition-all duration-300">
-              <Flame className="h-5 w-5 text-primary" />
+            <div className="bg-emerald-500/10 dark:bg-primary/20 p-2 rounded-lg border border-emerald-500/20 dark:border-primary/30 group-hover:border-emerald-500 dark:group-hover:border-primary group-hover:bg-emerald-500/20 dark:group-hover:bg-primary/30 transition-all duration-300">
+              <Flame className="h-5 w-5 text-emerald-600 dark:text-primary" />
             </div>
-            <span className="text-xl font-bold tracking-tight font-display text-gradient-primary">
-              SMASH<span className="text-white">CLUB</span>
+            <span className="text-xl font-bold tracking-tight font-display text-slate-900 dark:text-white">
+              SMASH<span className="text-emerald-600 dark:text-primary font-black">CLUB</span>
             </span>
           </Link>
 
@@ -121,10 +119,10 @@ export default function Navbar() {
                   }
                 }}
                 className={({ isActive }) => `
-                  flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300
+                  flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300
                   ${isActive
-                    ? 'bg-primary/10 text-primary border border-primary/20'
-                    : 'text-gray-300 hover:text-white hover:bg-white/5 border border-transparent'}
+                    ? 'bg-emerald-500/10 dark:bg-primary/10 text-emerald-700 dark:text-primary border border-emerald-500/20 dark:border-primary/20'
+                    : 'text-slate-800 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-white hover:bg-emerald-500/5 dark:hover:bg-white/5 border border-transparent'}
                 `}
               >
                 <item.icon className="h-4 w-4" />
@@ -137,7 +135,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
               <>
-                <button className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors">
+                <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
                   <Bell className="h-5 w-5" />
                 </button>
                 {/* Avatar with Dropdown */}
@@ -145,38 +143,46 @@ export default function Navbar() {
                   <div
                     onClick={() => setAvatarDropdownOpen(!avatarDropdownOpen)}
                     title={user?.name || 'Account'}
-                    className="h-8 w-8 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center font-bold text-bg-dark text-sm border border-white/20 cursor-pointer hover:scale-105 transition-transform"
+                    className="h-10 w-10 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 flex items-center justify-center font-bold text-white text-lg shadow-md ring-2 ring-emerald-500/30 cursor-pointer hover:scale-105 transition-transform"
                   >
                     {avatarInitials}
                   </div>
                   {/* Dropdown Menu */}
                   {avatarDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-border-dark bg-[#0d1117]/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden animate-fade-in z-50">
-                      <div className="px-4 py-3 border-b border-border-dark">
-                        <p className="text-sm font-semibold text-white truncate">{user?.name || 'User'}</p>
-                        <p className="text-xs text-gray-500 truncate">{isFacilityOwner ? 'Chủ sân SmashClub' : 'Hội viên SmashClub'}</p>
+                    <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[#0d1117]/95 backdrop-blur-xl shadow-xl overflow-hidden animate-fade-in z-50">
+                      <div className="px-4 py-3 border-b border-gray-100 dark:border-white/10">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{user?.name || 'User'}</p>
+                        <p className="text-xs text-gray-500 truncate">{isAdmin ? 'Quản trị viên SmashClub' : isFacilityOwner ? 'Chủ sân SmashClub' : 'Hội viên SmashClub'}</p>
                       </div>
                       <div className="py-1">
-                        {isFacilityOwner ? (
+                        {isAdmin ? (
+                          <button
+                            onClick={() => { setAvatarDropdownOpen(false); navigate(PATHS.ADMIN_DASHBOARD); }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:text-emerald-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/5 transition-colors font-label cursor-pointer"
+                          >
+                            <Layers className="h-4 w-4 text-emerald-600 dark:text-primary" />
+                            Trang quản trị
+                          </button>
+                        ) : isFacilityOwner ? (
                           <button
                             onClick={() => { setAvatarDropdownOpen(false); navigate(PATHS.COURTS_MANAGEMENT); }}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors font-label cursor-pointer"
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:text-emerald-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/5 transition-colors font-label cursor-pointer"
                           >
-                            <Layers className="h-4 w-4 text-primary" />
+                            <Layers className="h-4 w-4 text-emerald-600 dark:text-primary" />
                             Quản lý sân
                           </button>
                         ) : (
                           <button
                             onClick={() => { setAvatarDropdownOpen(false); navigate(PATHS.GROUPS); }}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors font-label cursor-pointer"
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:text-emerald-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/5 transition-colors font-label cursor-pointer"
                           >
-                            <UsersRound className="h-4 w-4 text-primary" />
+                            <UsersRound className="h-4 w-4 text-emerald-600 dark:text-primary" />
                             Nhóm của tôi
                           </button>
                         )}
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/5 transition-colors font-label cursor-pointer"
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-500/5 transition-colors font-label cursor-pointer"
                         >
                           <LogOut className="h-4 w-4" />
                           Đăng xuất
@@ -189,7 +195,7 @@ export default function Navbar() {
             ) : (
               <Link
                 to={PATHS.LOGIN}
-                className="inline-flex items-center justify-center px-6 py-2 rounded-lg text-sm font-bold bg-primary hover:bg-primary-dark text-[#052e14] transition-all duration-300 shadow-md shadow-primary/20 hover:-translate-y-0.5 cursor-pointer font-label"
+                className="inline-flex items-center justify-center px-6 py-2 rounded-full text-sm font-bold bg-emerald-500 hover:bg-emerald-600 dark:bg-primary dark:hover:bg-primary-dark text-[#052e14] dark:text-white transition-all duration-300 shadow-md shadow-emerald-500/20 hover:-translate-y-0.5 cursor-pointer font-label"
               >
                 Đăng nhập
               </Link>
@@ -199,13 +205,13 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center gap-2">
             {isAuthenticated && (
-              <button className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors">
+              <button className="p-2 text-slate-800 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-white rounded-lg hover:bg-emerald-500/5 dark:hover:bg-white/5 transition-colors">
                 <Bell className="h-5 w-5" />
               </button>
             )}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+              className="p-2 rounded-lg text-slate-800 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-white hover:bg-emerald-500/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -215,7 +221,7 @@ export default function Navbar() {
 
       {/* Mobile Navigation Panel */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border-dark bg-[#0b0f19]/95 backdrop-blur-xl animate-fade-in absolute w-full left-0 top-full shadow-2xl">
+        <div className="md:hidden border-t border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[#0b0f19]/95 backdrop-blur-xl animate-fade-in absolute w-full left-0 top-full shadow-2xl">
           <nav className="px-3 pt-2 pb-6 space-y-1">
             {navItems.map((item) => (
               <NavLink
@@ -270,17 +276,25 @@ export default function Navbar() {
             {isAuthenticated && (
               <div className="pt-4 pb-2 border-t border-white/10 mt-4 px-2 space-y-2">
                 <div className="flex items-center gap-4 mb-3">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center font-bold text-bg-dark text-lg border border-white/20">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 flex items-center justify-center font-bold text-white text-lg shadow-md ring-2 ring-emerald-500/30">
                     {avatarInitials}
                   </div>
                   <div>
-                    <div className="text-white font-medium">{user.name}</div>
+                    <div className="text-gray-900 dark:text-white font-medium">{user.name}</div>
                     <div className="text-xs text-gray-500">
-                      {isFacilityOwner ? 'Chủ sân SmashClub' : 'Hội viên SmashClub'}
+                      {isAdmin ? 'Quản trị viên SmashClub' : isFacilityOwner ? 'Chủ sân SmashClub' : 'Hội viên SmashClub'}
                     </div>
                   </div>
                 </div>
-                {isFacilityOwner ? (
+                {isAdmin ? (
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); navigate(PATHS.ADMIN_DASHBOARD); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors font-label cursor-pointer"
+                  >
+                    <Layers className="h-4 w-4 text-primary" />
+                    Trang quản trị
+                  </button>
+                ) : isFacilityOwner ? (
                   <button
                     onClick={() => navigate(PATHS.COURTS_MANAGEMENT)}
                     className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors font-label cursor-pointer"

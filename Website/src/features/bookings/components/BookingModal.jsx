@@ -482,7 +482,7 @@ export default function BookingModal({ isOpen, onClose, facility }) {
             </div>
           ) : (
             <div className="min-w-max">
-              <table className="w-full border-collapse select-none">
+              <table className="w-full border-separate border-spacing-y-3 select-none">
                 <thead>
                   <tr>
                     <th className="sticky left-0 z-20 bg-emerald-800 text-white text-xs font-bold px-4 py-4 border-r border-emerald-900 min-w-[160px] w-[160px] shadow-[2px_0_5px_rgba(0,0,0,0.1)]">

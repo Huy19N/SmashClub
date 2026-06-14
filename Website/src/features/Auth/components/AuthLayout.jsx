@@ -22,6 +22,10 @@ export default function AuthLayout() {
         <div className="absolute inset-0 bg-black/40 dark:bg-black/60 transition-colors duration-1000" />
       </div>
 
+      {/* Dynamic TasteSkill Orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/30 rounded-full mix-blend-screen filter blur-[120px] animate-pulse-slow pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-emerald-300/20 rounded-full mix-blend-screen filter blur-[150px] animate-pulse-slow pointer-events-none" />
+
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 p-6 z-20 flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2 group">
@@ -36,8 +40,8 @@ export default function AuthLayout() {
       </div>
 
       {/* Content Area */}
-      <div className="relative z-10 w-full max-w-md px-4 py-8 animate-slide-up">
-        <div className="glass-panel p-8 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.5)] transition-colors duration-500">
+      <div className="relative z-10 w-full max-w-md px-4 py-8 animate-slide-up mt-10">
+        <div className="glass-panel p-8 sm:p-10 rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] transition-colors duration-500 border border-white/20">
           <Outlet />
         </div>
       </div>

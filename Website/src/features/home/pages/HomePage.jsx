@@ -6,7 +6,9 @@ import {
   Shield,
   Trophy,
   Activity,
-  ArrowRight
+  ArrowRight,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { PATHS } from '../../../routes/paths';
 import SEOManager from '../../../components/seo/SEOManager';
@@ -14,6 +16,7 @@ import videoBg from '../../../assets/video_smash_club.mp4';
 import CollectionsSection from '../components/CollectionsSection';
 import PremiumSection from '../components/PremiumSection';
 import ContactSection from '../components/ContactSection';
+import { useTheme } from '../../../contexts/ThemeContext';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
@@ -22,6 +25,7 @@ import 'aos/dist/aos.css';
  * Optimized 60fps Scrollytelling implementation.
  */
 export default function HomePage() {
+  const { theme, toggleTheme } = useTheme();
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingComplete, setLoadingComplete] = useState(false);
   const [showHomepage, setShowHomepage] = useState(false);
@@ -269,7 +273,7 @@ export default function HomePage() {
       )}
 
       {/* ---------------- IMMERSIVE EXPERIENCE CONTAINER ---------------- */}
-      <div className="relative w-full text-white bg-transparent">
+      <div className="relative w-full text-slate-900 dark:text-white bg-transparent">
 
         {/* VIDEO BACKGROUND */}
         <video
@@ -284,10 +288,9 @@ export default function HomePage() {
           autoPlay
         />
 
-        {/* DARK SHADER */}
-        {/* Changed to a semi-transparent gradient so the video is clearly visible to the bottom */}
+        {/* BRIGHT / DARK SHADER */}
         <div
-          className="fixed inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 z-[2] pointer-events-none"
+          className="fixed inset-0 bg-gradient-to-b from-white/15 via-white/5 to-white/20 dark:from-black/60 dark:via-black/40 dark:to-black/70 z-[2] pointer-events-none transition-colors duration-500"
           style={{ transform: 'translate3d(0,0,0)' }}
         />
 
@@ -304,11 +307,11 @@ export default function HomePage() {
                 {/* Scroll Down Indicator */}
                 <div
                   ref={scrollIndicatorRef}
-                  className="flex flex-col items-center gap-2 text-gray-400 animate-pulse font-label pb-10"
+                  className="flex flex-col items-center gap-2 text-slate-500 dark:text-gray-400 animate-pulse font-label pb-10"
                   style={{ opacity: 1, transition: 'opacity 0.15s ease-out' }}
                 >
-                  <span className="text-xs font-semibold tracking-widest uppercase text-white drop-shadow-md">Cuộn để khám phá</span>
-                  <ArrowDown className="h-5 w-5 animate-bounce text-primary" />
+                  <span className="text-xs font-semibold tracking-widest uppercase text-slate-900 dark:text-white drop-shadow-md">Cuộn để khám phá</span>
+                  <ArrowDown className="h-5 w-5 animate-bounce text-emerald-600 dark:text-primary" />
                 </div>
               </div>
             </div>
@@ -321,16 +324,16 @@ export default function HomePage() {
                 <span
                   data-aos="fade-left"
                   data-aos-delay="0"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider text-primary bg-primary/10 border border-primary/20 uppercase font-label"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wider text-emerald-600 dark:text-primary bg-emerald-100 dark:bg-primary/10 border border-emerald-200 dark:border-primary/20 uppercase font-label"
                 >
-                  <Shield className="h-3.5 w-3.5 text-primary" />
+                  <Shield className="h-3.5 w-3.5 text-emerald-600 dark:text-primary" />
                   Sân đấu đẳng cấp
                 </span>
 
                 <h1
                   data-aos="fade-left"
                   data-aos-delay="100"
-                  className="text-5xl sm:text-8xl font-black tracking-tighter leading-none font-display drop-shadow-2xl"
+                  className="text-5xl sm:text-8xl font-black tracking-tighter leading-none font-display text-slate-900 dark:text-white drop-shadow-2xl"
                 >
                   PHÁ VỠ <br />
                   <span className="text-gradient-primary font-bold italic">GIỚI HẠN.</span>
@@ -339,7 +342,7 @@ export default function HomePage() {
                 <p
                   data-aos="fade-left"
                   data-aos-delay="200"
-                  className="text-gray-200 text-lg sm:text-2xl font-light leading-relaxed max-w-2xl font-sans drop-shadow-md ml-auto"
+                  className="text-slate-700 dark:text-gray-200 text-lg sm:text-2xl font-light leading-relaxed max-w-2xl font-sans drop-shadow-md ml-auto"
                 >
                   Trải nghiệm thể thao đẳng cấp với hệ thống sân chất lượng cao, đặt sân tự động và hệ thống chiếu sáng chuyên nghiệp.
                 </p>
@@ -351,14 +354,14 @@ export default function HomePage() {
                 >
                   <Link
                     to={PATHS.BOOKING}
-                    className="px-8 py-4 rounded-lg font-bold bg-primary hover:bg-primary-dark text-[#052e14] transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-primary/20 cursor-pointer inline-flex items-center gap-2"
+                    className="px-8 py-4 rounded-full font-bold bg-emerald-500 hover:bg-emerald-600 dark:bg-primary dark:hover:bg-primary-dark text-[#052e14] transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-emerald-500/20 cursor-pointer inline-flex items-center gap-2"
                   >
                     Đặt Sân Ngay
                     <ArrowRight className="h-5 w-5 text-[#052e14]" />
                   </Link>
                   <Link
                     to={PATHS.MEMBERS}
-                    className="px-8 py-4 rounded-lg font-bold bg-transparent border border-white/40 hover:border-primary hover:text-primary text-white transition-all duration-300 cursor-pointer inline-block backdrop-blur-sm"
+                    className="px-8 py-4 rounded-full font-bold bg-transparent border border-slate-300 dark:border-white/40 hover:border-emerald-500 dark:hover:border-primary text-slate-800 dark:text-white hover:text-emerald-600 transition-all duration-300 cursor-pointer inline-block backdrop-blur-sm"
                   >
                     Quyền Lợi Hội Viên
                   </Link>
@@ -372,41 +375,41 @@ export default function HomePage() {
             <div className="sticky top-0 h-screen flex items-center px-4 max-w-5xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
                 <div className="space-y-6">
-                  <span data-aos="fade-right" className="text-primary font-bold text-sm tracking-widest uppercase font-label drop-shadow-md">01 / Sân Đấu</span>
-                  <h2 data-aos="fade-up" data-aos-delay="100" className="text-4xl sm:text-5xl font-extrabold font-display leading-tight drop-shadow-lg">
+                  <span data-aos="fade-right" className="text-emerald-600 dark:text-primary font-bold text-sm tracking-widest uppercase font-label drop-shadow-md">01 / Sân Đấu</span>
+                  <h2 data-aos="fade-up" data-aos-delay="100" className="text-4xl sm:text-5xl font-extrabold font-display leading-tight text-slate-900 dark:text-white drop-shadow-lg">
                     Thiết Kế Cho <br />
                     <span className="text-gradient-primary italic">Tốc Độ & Sức Bật</span>
                   </h2>
-                  <p data-aos="fade-up" data-aos-delay="200" className="text-gray-200 leading-relaxed text-base sm:text-lg font-sans drop-shadow-md">
+                  <p data-aos="fade-up" data-aos-delay="200" className="text-slate-700 dark:text-gray-200 leading-relaxed text-base sm:text-lg font-sans drop-shadow-md">
                     Mỗi sân tại SmashClub đều được trang bị hệ thống sàn chống sốc chuyên nghiệp và bề mặt PVC tiêu chuẩn. Hệ thống đèn LED dọc công suất cao mang đến tầm nhìn hoàn hảo mà không gây chói mắt.
                   </p>
                   <div data-aos="fade-up" data-aos-delay="300" className="grid grid-cols-2 gap-4 pt-4 font-label">
-                    <div className="bg-black/40 backdrop-blur-md p-4 rounded-lg flex items-start gap-3 border border-white/10">
-                      <Activity className="h-5 w-5 text-secondary mt-0.5 shrink-0" />
+                    <div className="glass-panel p-4 rounded-2xl flex items-start gap-3 border border-slate-200/50 dark:border-white/10 shadow-lg">
+                      <Activity className="h-5 w-5 text-emerald-500 dark:text-secondary mt-0.5 shrink-0" />
                       <div>
-                        <h4 className="font-bold text-white text-sm">Chống Sốc</h4>
-                        <p className="text-xs text-gray-300">Sàn lõi đàn hồi kép</p>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm">Chống Sốc</h4>
+                        <p className="text-xs text-slate-500 dark:text-gray-400">Sàn lõi đàn hồi kép</p>
                       </div>
                     </div>
-                    <div className="bg-black/40 backdrop-blur-md p-4 rounded-lg flex items-start gap-3 border border-white/10">
-                      <Shield className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <div className="glass-panel p-4 rounded-2xl flex items-start gap-3 border border-slate-200/50 dark:border-white/10 shadow-lg">
+                      <Shield className="h-5 w-5 text-emerald-600 dark:text-primary mt-0.5 shrink-0" />
                       <div>
-                        <h4 className="font-bold text-white text-sm">Chống Trượt</h4>
-                        <p className="text-xs text-gray-300">Hệ số bám sàn 0.58</p>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm">Chống Trượt</h4>
+                        <p className="text-xs text-slate-500 dark:text-gray-400">Hệ số bám sàn 0.58</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div data-aos="fade-left" data-aos-delay="200" className="bg-black/50 backdrop-blur-xl p-8 rounded-2xl border border-white/10 space-y-6 shadow-2xl">
-                  <div className="h-1 bg-gradient-to-r from-primary to-secondary rounded-full w-20" />
-                  <h3 className="text-2xl font-bold font-display text-white">Đặt Sân Tự Động</h3>
-                  <p className="text-gray-300 text-sm leading-relaxed font-sans">
+                <div data-aos="fade-left" data-aos-delay="200" className="glass-panel p-8 rounded-3xl border border-slate-200/60 dark:border-white/10 space-y-6 shadow-2xl">
+                  <div className="h-1 bg-gradient-to-r from-emerald-500 to-emerald-300 dark:from-primary dark:to-secondary rounded-full w-20" />
+                  <h3 className="text-2xl font-bold font-display text-slate-900 dark:text-white">Đặt Sân Tự Động</h3>
+                  <p className="text-slate-600 dark:text-gray-300 text-sm leading-relaxed font-sans">
                     Giữ chỗ sân yêu thích chỉ trong vài giây. Hệ thống lịch tự động kiểm tra tình trạng sân theo thời gian thực, đồng bộ ngay với thẻ hội viên và hỗ trợ mời bạn bè thách đấu dễ dàng.
                   </p>
                   <Link
                     to={PATHS.BOOKING}
-                    className="inline-flex items-center gap-2 text-primary font-bold hover:text-primary-dark transition-colors text-sm cursor-pointer font-label"
+                    className="inline-flex items-center gap-2 text-emerald-600 dark:text-primary font-bold hover:text-emerald-700 dark:hover:text-primary-dark transition-colors text-sm cursor-pointer font-label"
                   >
                     Lịch đặt sân trực quan
                     <ArrowRight className="h-4 w-4" />
@@ -420,15 +423,15 @@ export default function HomePage() {
           <section className="h-[200vh] relative w-full">
             <div className="sticky top-0 h-screen flex items-center px-4 max-w-5xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
-                <div data-aos="fade-right" data-aos-delay="200" className="bg-black/50 backdrop-blur-xl p-8 rounded-2xl border border-white/10 space-y-6 shadow-2xl order-2 md:order-1">
-                  <Trophy className="h-10 w-10 text-primary" />
-                  <h3 className="text-2xl font-bold font-display text-white">Giải Đấu Sôi Động</h3>
-                  <p className="text-gray-300 text-sm leading-relaxed font-sans">
+                <div data-aos="fade-right" data-aos-delay="200" className="glass-panel p-8 rounded-3xl border border-slate-200/60 dark:border-white/10 space-y-6 shadow-2xl order-2 md:order-1">
+                  <Trophy className="h-10 w-10 text-emerald-600 dark:text-primary" />
+                  <h3 className="text-2xl font-bold font-display text-slate-900 dark:text-white">Giải Đấu Sôi Động</h3>
+                  <p className="text-slate-600 dark:text-gray-300 text-sm leading-relaxed font-sans">
                     Thử sức cú smash của bạn trước những tay vợt hàng đầu khu vực. Hệ thống xếp hạng ghép cặp theo trình độ, theo dõi tỷ lệ thắng/thua và trao thưởng trang bị chuyên nghiệp cho các vị trí đầu bảng.
                   </p>
                   <Link
                     to={PATHS.MEMBERS}
-                    className="inline-flex items-center gap-2 text-primary font-bold hover:text-primary-dark transition-colors text-sm cursor-pointer font-label"
+                    className="inline-flex items-center gap-2 text-emerald-600 dark:text-primary font-bold hover:text-emerald-700 dark:hover:text-primary-dark transition-colors text-sm cursor-pointer font-label"
                   >
                     Tham gia bảng xếp hạng
                     <ArrowRight className="h-4 w-4" />
@@ -436,26 +439,26 @@ export default function HomePage() {
                 </div>
 
                 <div className="order-1 md:order-2 space-y-6">
-                  <span data-aos="fade-left" className="text-primary font-bold text-sm tracking-widest uppercase font-label drop-shadow-md">02 / Cộng Đồng</span>
-                  <h2 data-aos="fade-up" data-aos-delay="100" className="text-4xl sm:text-5xl font-extrabold font-display leading-tight drop-shadow-lg">
+                  <span data-aos="fade-left" className="text-emerald-600 dark:text-primary font-bold text-sm tracking-widest uppercase font-label drop-shadow-md">02 / Cộng Đồng</span>
+                  <h2 data-aos="fade-up" data-aos-delay="100" className="text-4xl sm:text-5xl font-extrabold font-display leading-tight text-slate-900 dark:text-white drop-shadow-lg">
                     Chinh Phục <br />
                     <span className="text-gradient-primary italic">Bảng Xếp Hạng</span>
                   </h2>
-                  <p data-aos="fade-up" data-aos-delay="200" className="text-gray-200 leading-relaxed text-base sm:text-lg font-sans drop-shadow-md">
+                  <p data-aos="fade-up" data-aos-delay="200" className="text-slate-700 dark:text-gray-200 leading-relaxed text-base sm:text-lg font-sans drop-shadow-md">
                     Tham gia giải đấu, ghép cặp với đối thủ cùng trình độ và luyện tập cùng các huấn luyện viên quốc gia. Gói hội viên mang đến quyền truy cập cao nhất vào hệ thống sân đấu chuyên nghiệp.
                   </p>
                   <div data-aos="fade-up" data-aos-delay="300" className="flex gap-6 pt-4 text-left font-label">
                     <div>
                       <h4 className="text-3xl font-black text-gradient-primary font-display drop-shadow-md">1.2K+</h4>
-                      <p className="text-xs text-gray-300 uppercase tracking-wider">Hội viên</p>
+                      <p className="text-xs text-slate-500 dark:text-gray-300 uppercase tracking-wider">Hội viên</p>
                     </div>
                     <div>
-                      <h4 className="text-3xl font-black text-white font-display drop-shadow-md">12</h4>
-                      <p className="text-xs text-gray-300 uppercase tracking-wider">Sân chuyên nghiệp</p>
+                      <h4 className="text-3xl font-black text-slate-900 dark:text-white font-display drop-shadow-md">12</h4>
+                      <p className="text-xs text-slate-500 dark:text-gray-300 uppercase tracking-wider">Sân chuyên nghiệp</p>
                     </div>
                     <div>
                       <h4 className="text-3xl font-black text-gradient-primary font-display drop-shadow-md">98%</h4>
-                      <p className="text-xs text-gray-300 uppercase tracking-wider">Ghép cặp thành công</p>
+                      <p className="text-xs text-slate-500 dark:text-gray-300 uppercase tracking-wider">Ghép cặp thành công</p>
                     </div>
                   </div>
                 </div>
@@ -466,32 +469,32 @@ export default function HomePage() {
           {/* SECTION 4: CALL TO ACTION (Sticks to screen) */}
           <section className="h-[100vh] relative w-full">
             <div className="sticky top-0 h-screen flex flex-col justify-center items-center px-4 max-w-5xl mx-auto text-center">
-              <div data-aos="zoom-in" className="bg-black/60 backdrop-blur-xl p-8 sm:p-16 rounded-3xl border border-white/10 space-y-8 max-w-3xl relative overflow-hidden shadow-2xl">
+              <div data-aos="zoom-in" className="glass-panel p-8 sm:p-16 rounded-[2.5rem] border border-slate-200/60 dark:border-white/10 space-y-8 max-w-3xl relative overflow-hidden shadow-2xl">
                 <div className="absolute -top-24 -left-24 h-48 w-48 bg-primary/20 rounded-full blur-3xl animate-pulse-slow pointer-events-none" />
                 <div className="absolute -bottom-24 -right-24 h-48 w-48 bg-secondary/20 rounded-full blur-3xl animate-pulse-slow pointer-events-none" />
 
                 <div className="relative space-y-6">
-                  <span data-aos="fade-down" data-aos-delay="100" className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wider text-primary bg-primary/10 border border-primary/20 uppercase font-label">
+                  <span data-aos="fade-down" data-aos-delay="100" className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold tracking-wider text-emerald-600 dark:text-primary bg-emerald-100 dark:bg-primary/10 border border-emerald-200 dark:border-primary/20 uppercase font-label">
                     Bắt đầu ngay
                   </span>
-                  <h2 data-aos="fade-up" data-aos-delay="200" className="text-3xl sm:text-5xl font-extrabold font-display tracking-tight text-white leading-tight">
+                  <h2 data-aos="fade-up" data-aos-delay="200" className="text-3xl sm:text-5xl font-extrabold font-display tracking-tight text-slate-900 dark:text-white leading-tight">
                     Sẵn Sàng <br />
                     Chinh Phục Sân Đấu?
                   </h2>
-                  <p data-aos="fade-up" data-aos-delay="300" className="text-gray-300 text-sm sm:text-base max-w-lg mx-auto leading-relaxed font-sans">
+                  <p data-aos="fade-up" data-aos-delay="300" className="text-slate-600 dark:text-gray-300 text-sm sm:text-base max-w-lg mx-auto leading-relaxed font-sans">
                     Tham gia SmashClub ngay hôm nay để đặt sân tự động, sắm trang bị chuyên nghiệp tại cửa hàng Pro Shop và thử sức trên bảng xếp hạng.
                   </p>
 
                   <div data-aos="fade-up" data-aos-delay="400" className="flex flex-wrap justify-center gap-4 pt-4 font-label">
                     <Link
                       to={PATHS.BOOKING}
-                      className="px-8 py-4 rounded-lg font-bold bg-primary hover:bg-primary-dark text-[#052e14] transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-primary/20 cursor-pointer"
+                      className="px-8 py-4 rounded-full font-bold bg-emerald-500 hover:bg-emerald-600 dark:bg-primary dark:hover:bg-primary-dark text-[#052e14] transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-emerald-500/20 cursor-pointer"
                     >
                       Đặt Sân Đầu Tiên
                     </Link>
                     <Link
                       to={PATHS.SHOP}
-                      className="px-8 py-4 rounded-lg font-bold bg-[#334155] border border-white/10 hover:bg-slate-600 text-white transition-all duration-300 cursor-pointer"
+                      className="px-8 py-4 rounded-full font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 transition-all duration-300 cursor-pointer"
                     >
                       Xem Trang Bị Pro
                     </Link>
@@ -513,27 +516,47 @@ export default function HomePage() {
         <ContactSection />
 
         {/* ---------------- FOOTER ---------------- */}
-        <footer className="relative z-10 border-t border-white/10 bg-[#0b0f19] py-12 font-label">
+        <footer className="relative z-10 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0b0f19] py-12 font-label transition-colors duration-500">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <div className="bg-primary/10 p-2 rounded-lg border border-primary/20">
-                <Flame className="h-5 w-5 text-primary" />
+              <div className="bg-emerald-500/10 dark:bg-primary/10 p-2 rounded-lg border border-emerald-500/20 dark:border-primary/20">
+                <Flame className="h-5 w-5 text-emerald-600 dark:text-primary" />
               </div>
               <span className="text-lg font-bold font-display text-gradient-primary">
-                SMASH<span className="text-white">CLUB</span>
+                SMASH<span className="text-slate-900 dark:text-white">CLUB</span>
               </span>
             </div>
-            <div className="text-gray-500 text-xs sm:text-sm text-center md:text-left">
+            <div className="text-slate-500 dark:text-gray-500 text-xs sm:text-sm text-center md:text-left">
               © {new Date().getFullYear()} SmashClub. Mọi quyền được bảo lưu.
             </div>
-            <div className="flex gap-6 text-xs sm:text-sm text-gray-400">
-              <a href="#privacy" className="hover:text-primary transition-colors">Chính sách bảo mật</a>
-              <a href="#terms" className="hover:text-primary transition-colors">Điều khoản sử dụng</a>
-              <a href="#support" className="hover:text-primary transition-colors">Hỗ trợ</a>
+            <div className="flex gap-6 text-xs sm:text-sm text-slate-500 dark:text-gray-400">
+              <a href="#privacy" className="hover:text-emerald-500 dark:hover:text-primary transition-colors">Chính sách bảo mật</a>
+              <a href="#terms" className="hover:text-emerald-500 dark:hover:text-primary transition-colors">Điều khoản sử dụng</a>
+              <a href="#support" className="hover:text-emerald-500 dark:hover:text-primary transition-colors">Hỗ trợ</a>
             </div>
           </div>
         </footer>
 
+      </div>
+
+      {/* ---------------- FLOATING THEME SWITCHER (BOTTOM-LEFT) ---------------- */}
+      <div className="fixed bottom-6 left-6 z-[99] select-none">
+        <button
+          onClick={toggleTheme}
+          className="group relative flex h-14 w-14 items-center justify-center rounded-full glass-panel border border-emerald-500/30 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer"
+          aria-label="Chuyển đổi giao diện"
+        >
+          {/* Subtle Outer Glow */}
+          <div className="absolute inset-0 rounded-full bg-emerald-500/15 dark:bg-primary/20 opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-300 pointer-events-none" />
+          
+          <div className="relative h-6 w-6 overflow-hidden flex items-center justify-center">
+            {theme === 'dark' ? (
+              <Sun className="h-6 w-6 text-amber-400 transform rotate-0 scale-100 transition-all duration-500 group-hover:rotate-45" />
+            ) : (
+              <Moon className="h-6 w-6 text-emerald-600 dark:text-emerald-400 transform rotate-0 scale-100 transition-all duration-500 group-hover:-rotate-12" />
+            )}
+          </div>
+        </button>
       </div>
     </>
   );

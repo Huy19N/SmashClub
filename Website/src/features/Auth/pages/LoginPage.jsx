@@ -36,8 +36,8 @@ export default function LoginPage() {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-3">
-        <h1 className="text-4xl font-bold font-display tracking-tight text-white transition-colors duration-500">Chào Mừng Bạn</h1>
-        <p className="text-lg text-gray-300 transition-colors duration-500">Đăng nhập để kết nối cùng bạn bè</p>
+        <h1 className="text-4xl font-black font-display tracking-tight text-gray-900 dark:text-white transition-colors duration-500">Chào Mừng Bạn</h1>
+        <p className="text-lg text-gray-600 dark:text-gray-300 transition-colors duration-500">Đăng nhập để kết nối cùng bạn bè</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -66,26 +66,26 @@ export default function LoginPage() {
                 <path d="M11.6666 3.5L5.24992 9.91667L2.33325 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <span className="text-sm text-gray-300 group-hover:text-white transition-colors">Ghi nhớ đăng nhập</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Ghi nhớ đăng nhập</span>
           </label>
           <button
             type="button"
             onClick={() => setIsForgotModalOpen(true)}
-            className="text-sm text-primary hover:text-primary-dark font-medium transition-colors"
+            className="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-bold transition-colors"
           >
             Quên mật khẩu?
           </button>
         </div>
 
-        <Button type="submit" className="w-full" isLoading={isLoading}>
+        <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20 transform transition hover:-translate-y-0.5 rounded-xl" isLoading={isLoading}>
           Đăng Nhập
         </Button>
       </form>
 
-      <div className="text-center">
-        <p className="text-sm text-gray-300 transition-colors">
+      <div className="text-center pt-2">
+        <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">
           Bạn chưa có tài khoản?{' '}
-          <Link to={PATHS.REGISTER} className="text-primary hover:text-primary-dark font-bold transition-colors">
+          <Link to={PATHS.REGISTER} className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-extrabold transition-colors">
             Đăng ký ngay
           </Link>
         </p>

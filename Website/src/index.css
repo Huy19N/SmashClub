@@ -20,10 +20,10 @@
   --color-border-dark: #334155;
   /* Slate-700 Border */
 
-  /* Typography Stack (Image 2) */
-  --font-display: "Playfair Display", Georgia, serif;
-  --font-sans: "Lora", Georgia, serif;
-  --font-label: "Work Sans", system-ui, sans-serif;
+  /* Premium Geometric Typography */
+  --font-display: "Outfit", system-ui, sans-serif;
+  --font-sans: "Outfit", system-ui, sans-serif;
+  --font-label: "Outfit", system-ui, sans-serif;
 
   /* Custom 60fps Micro-Animations */
   --animate-shimmer: shimmer 2.5s infinite linear;
@@ -138,24 +138,40 @@
 
 /* Elegant Slate & Mint Glassmorphism */
 @utility glass-panel {
-  background: rgba(30, 41, 59, 0.55);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.dark .glass-panel {
+  background: rgba(30, 41, 59, 0.55);
   border: 1px solid rgba(51, 65, 85, 0.5);
 }
 
 @utility glass-panel-hover {
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  background: rgba(30, 41, 59, 0.55);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(51, 65, 85, 0.5);
+  border: 1px solid rgba(226, 232, 240, 0.6);
 
   &:hover {
-    background: rgba(30, 41, 59, 0.75);
-    border-color: rgba(11, 232, 96, 0.3);
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(11, 232, 96, 0.4);
     box-shadow: 0 10px 30px -10px rgba(11, 232, 96, 0.15);
     transform: translateY(-2px);
   }
+}
+
+.dark .glass-panel-hover {
+  background: rgba(30, 41, 59, 0.55);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+}
+
+.dark .glass-panel-hover:hover {
+  background: rgba(30, 41, 59, 0.75);
+  border-color: rgba(11, 232, 96, 0.3);
+  box-shadow: 0 10px 30px -10px rgba(11, 232, 96, 0.15);
 }
 
 @utility text-gradient-primary {

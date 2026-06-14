@@ -19,5 +19,10 @@ export const PATHS = {
   REGISTER: '/register',
   PROFILE: '/profile',
   COURTS_MANAGEMENT: '/courts-management',
+  ADMIN_DASHBOARD: '/admin/dashboard',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_FACILITIES: '/admin/facilities',
+  ADMIN_PAYOUTS: '/admin/payouts',
+  ADMIN_PROFILE: '/admin/profile',
   NOT_FOUND: '*',
 };
